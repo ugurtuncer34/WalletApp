@@ -6,6 +6,7 @@ global using WalletBackend.Dto;
 global using WalletBackend.Mapping;
 using Microsoft.OpenApi.Models;
 using AutoMapper;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,14 +56,29 @@ var ax = app.MapGroup("/accounts").WithTags("Accounts");
 var cx = app.MapGroup("/categories").WithTags("Categories");
 
 // Transaction Endpoints
-tx.MapGet("/", async (WalletDbContext db, IMapper mapper) =>
-        {
-            var list = await db.Transactions
-                            .Include(t => t.Account)
-                            .Include(t => t.Category)
-                            .ToListAsync();
-            return Results.Ok(mapper.Map<IEnumerable<TransactionReadDto>>(list));
-        });
+tx.MapGet("/", async (WalletDbContext db, IMapper mapper, string? month) =>
+{
+    // base query includes navs so AutoMapper can read names
+    IQueryable<Transaction> query = db.Transactions
+                    .Include(t => t.Account)
+                    .Include(t => t.Category);
+
+    if (!string.IsNullOrWhiteSpace(month) &&
+        DateTime.TryParseExact(month, "yyyy-MM",
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out var monthStart))
+    {
+        var monthEnd = monthStart.AddMonths(1);
+        query = query.Where(t => t.Date >= monthStart && t.Date < monthEnd);
+    }
+
+    var list = await query.ToListAsync();
+    return Results.Ok(mapper.Map<IEnumerable<TransactionReadDto>>(list));
+})
+.WithSummary("Get all transactions or only those within the given month (yyyy-MM)")
+.WithName("GetTransactions");
+
 tx.MapGet("/{id:int}", async (WalletDbContext db, IMapper mapper, int id) =>
 {
     var entity = await db.Transactions
@@ -110,6 +126,18 @@ tx.MapDelete("/{id:int}", async (WalletDbContext db, int id) =>
 // Account Endpoints
 ax.MapGet("/", async (WalletDbContext db) => await db.Accounts.ToListAsync());
 ax.MapGet("/{id:int}", async (WalletDbContext db, int id) => await db.Accounts.FindAsync(id));
+ax.MapGet("/{id:int}/balance", async (WalletDbContext db, int id) =>
+{
+    var accountExists = await db.Accounts.AnyAsync(a => a.Id == id);
+    if (!accountExists) return Results.NotFound();
+
+    var balance = await db.Transactions
+                            .Where(t => t.AccountId == id)
+                            .SumAsync(t => t.Direction == TransactionDirection.Income
+                                            ? t.Amount
+                                            : -t.Amount);
+    return Results.Ok(new BalanceDto(id, balance));
+});
 ax.MapPost("/", async (WalletDbContext db, Account account) =>
 {
     if (string.IsNullOrWhiteSpace(account.Name)) return Results.BadRequest("Account must be named");
