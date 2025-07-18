@@ -2,6 +2,8 @@ using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 using WalletBackend.Data;
 using WalletBackend.Models;
+using WalletBackend.Dto;
+using WalletBackend.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,16 +52,37 @@ var ax = app.MapGroup("/accounts").WithTags("Accounts");
 var cx = app.MapGroup("/categories").WithTags("Categories");
 
 // Transaction Endpoints
-tx.MapGet("/", async (WalletDbContext db) => await db.Transactions.ToListAsync());
-tx.MapGet("/{id:int}", async (WalletDbContext db, int id) => await db.Transactions.FindAsync(id));
-tx.MapPost("/", async (WalletDbContext db, Transaction transaction) =>
+tx.MapGet("/", async (WalletDbContext db) =>
+    await db.Transactions
+                .Include(t => t.Account)
+                .Include(t => t.Category)
+                .Select(t => t.ToReadDto())
+                .ToListAsync());
+tx.MapGet("/{id:int}", async (WalletDbContext db, int id) =>
 {
-    if (transaction.Amount <= 0) return Results.BadRequest("Amount must be positive");
-    if (!db.Accounts.Any(a => a.Id == transaction.AccountId)) return Results.BadRequest("Account not found");
-    if (!db.Categories.Any(c => c.Id == transaction.CategoryId)) return Results.BadRequest("Category not found");
-    await db.Transactions.AddAsync(transaction);
+    var t = await db.Transactions
+                        .Include(t => t.Account)
+                        .Include(t => t.Category)
+                        .FirstOrDefaultAsync(t => t.Id == id);
+    return t is null ? Results.NotFound()
+                     : Results.Ok(t.ToReadDto());
+});
+tx.MapPost("/", async (WalletDbContext db, TransactionCreateDto dto) =>
+{
+    if (dto.Amount <= 0) return Results.BadRequest("Amount must be positive");
+    if (!await db.Accounts.AnyAsync(a => a.Id == dto.AccountId)) return Results.BadRequest("Account not found");
+    if (!await db.Categories.AnyAsync(c => c.Id == dto.CategoryId)) return Results.BadRequest("Category not found");
+
+    var entity = dto.ToEntity();
+    await db.Transactions.AddAsync(entity);
     await db.SaveChangesAsync();
-    return Results.Created($"/transactions/{transaction.Id}", transaction);
+
+    // reload with navs to return a full ReadDto
+    entity = await db.Transactions
+                        .Include(t => t.Account)
+                        .Include(t => t.Category)
+                        .FirstAsync(t => t.Id == entity.Id);
+    return Results.Created($"/transactions/{entity.Id}", entity.ToReadDto());
 });
 tx.MapPut("/{id:int}", async (WalletDbContext db, Transaction updateTransaction, int id) =>
 {
