@@ -1,6 +1,7 @@
 namespace WalletBackend.Dto;
 
-public record TransactionCreateDto (
+public record TransactionUpdateDto
+(
     DateTime Date,
     decimal Amount,
     TransactionDirection Direction,

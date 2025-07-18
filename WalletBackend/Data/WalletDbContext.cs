@@ -1,6 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using WalletBackend.Models;
-
 namespace WalletBackend.Data;
 
 public class WalletDbContext(DbContextOptions<WalletDbContext> options) : DbContext(options)

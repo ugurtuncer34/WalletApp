@@ -1,9 +1,11 @@
+global using Microsoft.EntityFrameworkCore;
+global using WalletBackend.Data;
+global using WalletBackend.Models;
+global using WalletBackend.Dto;
+// global using WalletBackend.Helpers;
+global using WalletBackend.Mapping;
 using Microsoft.OpenApi.Models;
-using Microsoft.EntityFrameworkCore;
-using WalletBackend.Data;
-using WalletBackend.Models;
-using WalletBackend.Dto;
-using WalletBackend.Helpers;
+using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +18,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "WalletBackend", Description = "Personal Wallet APIs", Version = "v1" });
 });
+builder.Services.AddAutoMapper(typeof(TransactionProfile));
 
 var app = builder.Build();
 
@@ -52,28 +55,30 @@ var ax = app.MapGroup("/accounts").WithTags("Accounts");
 var cx = app.MapGroup("/categories").WithTags("Categories");
 
 // Transaction Endpoints
-tx.MapGet("/", async (WalletDbContext db) =>
-    await db.Transactions
-                .Include(t => t.Account)
-                .Include(t => t.Category)
-                .Select(t => t.ToReadDto())
-                .ToListAsync());
-tx.MapGet("/{id:int}", async (WalletDbContext db, int id) =>
+tx.MapGet("/", async (WalletDbContext db, IMapper mapper) =>
+        {
+            var list = await db.Transactions
+                            .Include(t => t.Account)
+                            .Include(t => t.Category)
+                            .ToListAsync();
+            return Results.Ok(mapper.Map<IEnumerable<TransactionReadDto>>(list));
+        });
+tx.MapGet("/{id:int}", async (WalletDbContext db, IMapper mapper, int id) =>
 {
-    var t = await db.Transactions
+    var entity = await db.Transactions
                         .Include(t => t.Account)
                         .Include(t => t.Category)
                         .FirstOrDefaultAsync(t => t.Id == id);
-    return t is null ? Results.NotFound()
-                     : Results.Ok(t.ToReadDto());
+    return entity is null ? Results.NotFound()
+                     : Results.Ok(mapper.Map<TransactionReadDto>(entity));
 });
-tx.MapPost("/", async (WalletDbContext db, TransactionCreateDto dto) =>
+tx.MapPost("/", async (WalletDbContext db, IMapper mapper, TransactionCreateDto dto) =>
 {
     if (dto.Amount <= 0) return Results.BadRequest("Amount must be positive");
     if (!await db.Accounts.AnyAsync(a => a.Id == dto.AccountId)) return Results.BadRequest("Account not found");
     if (!await db.Categories.AnyAsync(c => c.Id == dto.CategoryId)) return Results.BadRequest("Category not found");
 
-    var entity = dto.ToEntity();
+    var entity = mapper.Map<Transaction>(dto);
     await db.Transactions.AddAsync(entity);
     await db.SaveChangesAsync();
 
@@ -82,17 +87,14 @@ tx.MapPost("/", async (WalletDbContext db, TransactionCreateDto dto) =>
                         .Include(t => t.Account)
                         .Include(t => t.Category)
                         .FirstAsync(t => t.Id == entity.Id);
-    return Results.Created($"/transactions/{entity.Id}", entity.ToReadDto());
+    return Results.Created($"/transactions/{entity.Id}", mapper.Map<TransactionReadDto>(entity));
 });
-tx.MapPut("/{id:int}", async (WalletDbContext db, Transaction updateTransaction, int id) =>
+tx.MapPut("/{id:int}", async (WalletDbContext db, IMapper mapper, TransactionUpdateDto dto, int id) =>
 {
-    var transaction = await db.Transactions.FindAsync(id);
-    if (transaction is null) return Results.NotFound();
-    transaction.AccountId = updateTransaction.AccountId;
-    transaction.Amount = updateTransaction.Amount;
-    transaction.CategoryId = updateTransaction.CategoryId;
-    transaction.Date = updateTransaction.Date;
-    transaction.Direction = updateTransaction.Direction;
+    var entity = await db.Transactions.FindAsync(id);
+    if (entity is null) return Results.NotFound();
+
+    mapper.Map(dto, entity);
     await db.SaveChangesAsync();
     return Results.NoContent();
 });
