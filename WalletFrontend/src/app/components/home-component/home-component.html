@@ -1,0 +1,64 @@
+<section>
+    <h2>Transactions</h2>
+    <table *ngIf="transactions$ | async as list; else loading">
+        <!-- async pipe subscribes/unsubscribes automatically and exposes the array as list -->
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Account</th>
+                <th>Category</th>
+                <th>Direction</th>
+                <th>Amount</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let t of list">
+                <td>{{ t.date | date:'yyyy-MM-dd' }}</td>
+                <td>{{ t.accountName }}</td>
+                <td>{{ t.categoryName }}</td>
+                <td class="direction-{{ t.direction | lowercase }}">{{ t.direction }}</td>
+                <td class="amount">{{ t.amount | number:'1.2-2' }}</td>
+                <td>
+                    <button class="icon-btn" (click)="delete(t.id)">✕</button>
+                </td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td>
+                    <input type="date" [(ngModel)]="newTransaction.date" required />
+                </td>
+                <td>
+                    <select [(ngModel)]="newTransaction.accountId">
+                        <option [ngValue]="1">Cash</option>
+                        <!-- later: loop accounts$ | async -->
+                    </select>
+                </td>
+                <td>
+                    <select [(ngModel)]="newTransaction.categoryId">
+                        <option [ngValue]="1">Fun</option>
+                        <!-- later: categories$ -->
+                    </select>
+                </td>
+                <td>
+                    <select [(ngModel)]="newTransaction.direction">
+                        <option [ngValue]="1">Income</option>
+                        <option [ngValue]="2">Expense</option>
+                    </select>
+                </td>
+                <td class="amount">
+                    <input type="number" [(ngModel)]="newTransaction.amount" min="0.01" step="0.01" />
+                </td>
+                <td>
+                    <button class="add-btn" (click)="save()">Add</button>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <ng-template #loading>
+        <p>Loading...</p>
+    </ng-template>
+
+</section>

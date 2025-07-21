@@ -1,0 +1,109 @@
+/* home-component.css  */
+
+/* give the host element a bit of breathing room */
+:host {
+  display: block;
+  padding: 1rem;
+  font-family: system-ui, sans-serif;
+}
+
+/* table layout */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  background: #fff;
+  border: 1px solid #ddd;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
+}
+
+/* header row */
+thead {
+  background-color: #f5f5f5;
+}
+
+thead th {
+  padding: .75rem;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 2px solid #ddd;
+}
+
+/* zebra striping for readability */
+tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+/* body cells */
+tbody td {
+  padding: .65rem;
+  border-bottom: 1px solid #eee;
+}
+
+/* subtle hover highlight */
+tbody tr:hover {
+  background-color: #f1f7ff;
+}
+
+/* right‑align numeric column (add class="amount" in template) */
+.amount {
+  /* text-align: right; */
+  font-variant-numeric: tabular-nums;
+  font-weight: bolder;
+}
+
+/* optional colour cues for directions (use class binding) */
+.direction-income {
+  color: #0a8a0a;
+}
+
+.direction-expense {
+  color: #c22;
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: #c22;
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 .25rem;
+}
+
+.icon-btn:hover {
+  color: #a00;
+}
+
+.icon-btn:focus {
+  outline: 2px solid #a00;
+  outline-offset: 2px;
+}
+
+/* add transaction button */
+.add-btn {
+  background-color: #28a745;
+  /* soft green */
+  border: none;
+  color: #fff;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.add-btn:hover {
+  background-color: #218838;
+  /* darker on hover */
+}
+
+.add-btn:active {
+  background-color: #1e7e34;
+  /* pressed state */
+}
+
+.add-btn:focus {
+  outline: 2px solid #1e7e34;
+  outline-offset: 2px;
+}
