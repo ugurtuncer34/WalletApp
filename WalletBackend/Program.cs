@@ -15,6 +15,10 @@ builder.Services.AddEndpointsApiExplorer();
 //builder.Services.AddDbContext<WalletDbContext>(options => options.UseInMemoryDatabase("WalletDb"));
 builder.Services.AddSqlite<WalletDbContext>(connectionString);
 //builder.Services.AddDbContext<WalletDbContext>(opt => opt.UseSqlite(connectionString));
+builder.Services.AddCors(opt => opt.AddPolicy("dev",
+    p => p.WithOrigins("http://localhost:4200")
+        .AllowAnyHeader()
+        .AllowAnyMethod()));
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "WalletBackend", Description = "Personal Wallet APIs", Version = "v1" });
@@ -190,4 +194,5 @@ cx.MapDelete("/{id:int}", async (WalletDbContext db, int id) =>
     return Results.Ok();
 });
 
+app.UseCors("dev");
 app.Run();
