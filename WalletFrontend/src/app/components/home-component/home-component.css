@@ -107,3 +107,20 @@ tbody tr:hover {
   outline: 2px solid #1e7e34;
   outline-offset: 2px;
 }
+
+.filters {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.filters label {
+  font-size: 0.9rem;
+}
+
+.filters input,
+.filters select {
+  margin-left: 0.35rem;
+  padding: 0.25rem 0.4rem;
+}

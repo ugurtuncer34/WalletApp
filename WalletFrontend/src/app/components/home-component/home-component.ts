@@ -7,6 +7,8 @@ import { AccountService } from '../../services/account-service';
 import { CategoryService } from '../../services/category-service';
 import { AccountReadDto } from '../../models/account-read-dto';
 import { CategoryReadDto } from '../../models/category-read-dto';
+import { Observable } from 'rxjs';
+import { TransactionReadDto } from '../../models/transaction-read-dto';
 
 @Component({
   selector: 'app-home-component',
@@ -19,11 +21,28 @@ export class HomeComponent {
   private acService = inject(AccountService);
   private ctService = inject(CategoryService);
 
-  transactions$ = this.txService.list(); // Observable<TransactionReadDto[]>
-  accounts$ = this.acService.list();
-  categories$ = this.ctService.list();
+  // filter state (bound via ngModel)
+  selectedMonth: string | null = null;  // "2025-07" from <input type="month">
+  selectedAccountId: number | null = null;
+  selectedCategoryId: number | null = null;
 
-  balance$  = this.acService.balance$;   // just re-expose
+  // dropdown data
+  accounts$: Observable<AccountReadDto[]> = this.acService.list();
+  categories$: Observable<CategoryReadDto[]> = this.ctService.list();
+
+  // transactions list (Observable reassigned on each reload)
+  transactions$: Observable<TransactionReadDto[]> = this.txService.list();
+
+  // called whenever a filter changes
+  reload(): void {
+    this.transactions$ = this.txService.list({
+      month: this.selectedMonth ?? undefined,
+      accountId: this.selectedAccountId ?? undefined,
+      categoryId: this.selectedCategoryId ?? undefined
+    });
+  }
+
+  balance$ = this.acService.balance$;   // just re-expose
 
   newTransaction: TransactionCreateDto = {
     date: new Date(),
@@ -53,4 +72,7 @@ export class HomeComponent {
       error: err => alert('Delete failed: ' + err.message)
     });
   }
+
+  // optional: trackBy for performance
+  trackById = (_: number, item: TransactionReadDto) => item.id;
 }

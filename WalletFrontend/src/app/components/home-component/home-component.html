@@ -1,5 +1,28 @@
 <section>
     <h2>Transactions</h2>
+    <!-- Filter bar -->
+    <div class="filters">
+        <label>
+            Month:
+            <input type="month" [(ngModel)]="selectedMonth" (ngModelChange)="reload()">
+        </label>
+
+        <label>
+            Account:
+            <select [(ngModel)]="selectedAccountId" (change)="reload()">
+                <option [ngValue]="null">All</option>
+                <option *ngFor="let a of accounts$ | async" [ngValue]="a.id">{{ a.name }}</option>
+            </select>
+        </label>
+
+        <label>
+            Category:
+            <select [(ngModel)]="selectedCategoryId" (change)="reload()">
+                <option [ngValue]="null">All</option>
+                <option *ngFor="let c of categories$ | async" [ngValue]="c.id">{{ c.name }}</option>
+            </select>
+        </label>
+    </div>
     <table *ngIf="transactions$ | async as list; else loading">
         <!-- async pipe subscribes/unsubscribes automatically and exposes the array as list -->
         <thead>
@@ -13,7 +36,7 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let t of list">
+            <tr *ngFor="let t of list; trackBy: trackById">
                 <td>{{ t.date | date:'yyyy-MM-dd' }}</td>
                 <td>{{ t.accountName }}</td>
                 <td>{{ t.categoryName }}</td>
