@@ -5,6 +5,7 @@ import { AccountReadDto } from '../models/account-read-dto';
 import { BalanceDto } from '../models/balance-dto';
 import { map, Observable, shareReplay } from 'rxjs';
 import { AccountCreateDto } from '../models/account-create-dto';
+import { AccountUpdateDto } from '../models/account-update-dto';
 
 @Injectable({
   providedIn: 'root'
@@ -19,6 +20,9 @@ export class AccountService {
   }
   create(body: AccountCreateDto) {
     return this.http.post<AccountReadDto>(`${this.api}`, body);
+  }
+  update(id: number, body: AccountUpdateDto) {
+    return this.http.put(`${this.api}/${id}`, body);
   }
   delete(id: number) {
     return this.http.delete(`${this.api}/${id}`);

@@ -4,6 +4,7 @@ import { TransactionReadDto } from '../models/transaction-read-dto';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
 import { TransactionCreateDto } from '../models/transaction-create-dto';
+import { TransactionUpdateDto } from '../models/transaction-update-dto';
 
 @Injectable({
   providedIn: 'root'
@@ -22,6 +23,9 @@ export class TransactionService {
   }
   create(body: TransactionCreateDto) {
     return this.http.post<TransactionReadDto>(`${environment.apiUrl}/transactions`, body);
+  }
+  update(id: number, body: TransactionUpdateDto) {
+    return this.http.put(`${environment.apiUrl}/transactions/${id}`, body);
   }
   delete(id: number) {
     return this.http.delete(`${environment.apiUrl}/transactions/${id}`);

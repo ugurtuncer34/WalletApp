@@ -10,6 +10,8 @@ import { CategoryReadDto } from '../../models/category-read-dto';
 import { Observable } from 'rxjs';
 import { TransactionReadDto } from '../../models/transaction-read-dto';
 import { AccountCreateDto } from '../../models/account-create-dto';
+import { TransactionUpdateDto } from '../../models/transaction-update-dto';
+import { AccountUpdateDto } from '../../models/account-update-dto';
 
 @Component({
   selector: 'app-home-component',
@@ -44,6 +46,15 @@ export class HomeComponent {
   }
 
   balance$ = this.acService.balance$;   // just re-expose
+  
+  currencyStringToNumber(cur: string): number {
+    switch (cur) {
+      case 'TRY': return 1;
+      case 'EUR': return 2;
+      case 'USD': return 3;
+      default: return 1;
+    }
+  }
 
   newTransaction: TransactionCreateDto = {
     date: new Date(),
@@ -57,6 +68,36 @@ export class HomeComponent {
     name: '',
     currency: 1 // default TRY
   };
+
+  editingId: number | null = null;
+  editTxn: TransactionUpdateDto | null = null;
+
+  startEdit(t: TransactionReadDto) {
+    this.editingId = t.id;
+    this.editTxn = {
+      date: t.date.toString(),
+      amount: t.amount,
+      direction: t.direction === 'Income' ? 1 : 2,
+      accountId: t.accountId,
+      categoryId: t.categoryId
+    };
+  }
+
+  cancelEdit() {
+    this.editingId = null;
+    this.editTxn = null;
+  }
+
+  saveEdit(id: number) {
+    if (!this.editTxn) return;
+    this.txService.update(id, this.editTxn).subscribe({
+      next: () => {
+        this.transactions$ = this.txService.list(/* pass current filters if any */);
+        this.cancelEdit();
+      },
+      error: err => alert('Update failed: ' + err.message)
+    });
+  }
 
   txSave() {
     this.txService.create(this.newTransaction).subscribe({
@@ -81,6 +122,33 @@ export class HomeComponent {
 
   // optional: trackBy for performance
   trackById = (_: number, item: TransactionReadDto) => item.id;
+
+  editingAccountId: number | null = null;
+  editAccount: AccountUpdateDto | null = null;
+
+  startEditAccount(a: AccountReadDto) {
+    this.editingAccountId = a.id;
+    this.editAccount = {
+      name: a.name,
+      currency: this.currencyStringToNumber(a.currency) // readDto string updateDto number (backend enum)
+    };
+  }
+
+  cancelEditAccount() {
+    this.editingAccountId = null;
+    this.editAccount = null;
+  }
+
+  saveEditAccount(id: number) {
+    if (!this.editAccount) return;
+    this.acService.update(id, this.editAccount).subscribe({
+      next: () => {
+        this.accounts$ = this.acService.list();  // refresh
+        this.cancelEditAccount();
+      },
+      error: err => alert('Update failed: ' + err.message)
+    });
+  }
 
   createAccount() {
     if (!this.newAccount.name.trim()) return alert('Name required');

@@ -108,6 +108,18 @@ tbody tr:hover {
   outline-offset: 2px;
 }
 
+.icon-btn.edit {
+  color: #0a6;
+}
+
+/* edit pencil */
+.add-btn.save {
+  background-color: #0a6;
+}
+
+/* reuse green */
+
+
 .filters {
   display: flex;
   gap: 1rem;
