@@ -23,6 +23,8 @@ export class HomeComponent {
   accounts$ = this.acService.list();
   categories$ = this.ctService.list();
 
+  balance$  = this.acService.balance$;   // just re-expose
+
   newTransaction: TransactionCreateDto = {
     date: new Date(),
     amount: 0,

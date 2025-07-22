@@ -67,19 +67,19 @@
     <table *ngIf="accounts$ | async as acclist; else loading">
         <thead>
             <tr>
-                <td>
-                    Account Name
-                </td>
-                <td>
-                    Currency
-                </td>
+                <th>Account Name</th>
+                <th>Currency</th>
+                <th class="amount">Balance</th>
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let a of acclist">
-                <td>{{a.name}}</td>
-                <td>{{a.currency}}</td>
+            @for (a of acclist; track a.id) {
+            <tr>
+                <td>{{ a.name }}</td>
+                <td>{{ a.currency }}</td>
+                <td class="amount">{{ (balance$(a.id) | async) ?? '…' }}</td>
             </tr>
+            }
         </tbody>
     </table>
 </section>
