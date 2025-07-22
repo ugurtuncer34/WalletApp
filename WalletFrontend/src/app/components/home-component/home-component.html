@@ -20,7 +20,7 @@
                 <td class="direction-{{ t.direction | lowercase }}">{{ t.direction }}</td>
                 <td class="amount">{{ t.amount | number:'1.2-2' }}</td>
                 <td>
-                    <button class="icon-btn" (click)="delete(t.id)">✕</button>
+                    <button class="icon-btn" (click)="txDelete(t.id)">✕</button>
                 </td>
             </tr>
         </tbody>
@@ -51,7 +51,7 @@
                     <input type="number" [(ngModel)]="newTransaction.amount" min="0.01" step="0.01" />
                 </td>
                 <td>
-                    <button class="add-btn" (click)="save()">Add</button>
+                    <button class="add-btn" (click)="txSave()">Add</button>
                 </td>
             </tr>
         </tfoot>
@@ -61,4 +61,42 @@
         <p>Loading...</p>
     </ng-template>
 
+</section>
+<section>
+    <h2>Accounts</h2>
+    <table *ngIf="accounts$ | async as acclist; else loading">
+        <thead>
+            <tr>
+                <td>
+                    Account Name
+                </td>
+                <td>
+                    Currency
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let a of acclist">
+                <td>{{a.name}}</td>
+                <td>{{a.currency}}</td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+<section>
+    <h2>Categories</h2>
+    <table *ngIf="categories$ | async as ctglist; else loading">
+        <thead>
+            <tr>
+                <td>
+                    Category Name
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let c of ctglist">
+                <td>{{c.name}}</td>
+            </tr>
+        </tbody>
+    </table>
 </section>

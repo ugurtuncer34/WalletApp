@@ -3,6 +3,10 @@ import { TransactionService } from '../../services/transaction-service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TransactionCreateDto } from '../../models/transaction-create-dto';
+import { AccountService } from '../../services/account-service';
+import { CategoryService } from '../../services/category-service';
+import { AccountReadDto } from '../../models/account-read-dto';
+import { CategoryReadDto } from '../../models/category-read-dto';
 
 @Component({
   selector: 'app-home-component',
@@ -12,8 +16,12 @@ import { TransactionCreateDto } from '../../models/transaction-create-dto';
 })
 export class HomeComponent {
   private txService = inject(TransactionService); // no constructor needed
+  private acService = inject(AccountService);
+  private ctService = inject(CategoryService);
 
   transactions$ = this.txService.list(); // Observable<TransactionReadDto[]>
+  accounts$ = this.acService.list();
+  categories$ = this.ctService.list();
 
   newTransaction: TransactionCreateDto = {
     date: new Date(),
@@ -23,7 +31,7 @@ export class HomeComponent {
     categoryId: 1
   };
 
-  save() {
+  txSave() {
     this.txService.create(this.newTransaction).subscribe({
       next: () => {
         this.transactions$ = this.txService.list(); //refresh after post
@@ -32,7 +40,7 @@ export class HomeComponent {
       error: err => alert('Save failed: ' + err.message)
     });
   }
-  delete(id: number) {
+  txDelete(id: number) {
     if (!confirm('Delete this transaction?')) return;
 
     this.txService.delete(id).subscribe({
