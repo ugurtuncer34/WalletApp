@@ -194,15 +194,39 @@
     <table *ngIf="categories$ | async as ctglist; else loading">
         <thead>
             <tr>
-                <td>
+                <th>
                     Category Name
-                </td>
+                </th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
             <tr *ngFor="let c of ctglist">
-                <td>{{c.name}}</td>
+                <td *ngIf="editingCategoryId !== c.id">{{ c.name }}</td>
+                <td *ngIf="editingCategoryId === c.id">
+                    <input type="text" [(ngModel)]="editCategory!.name">
+                </td>
+
+                <td>
+                    <button class="icon-btn" *ngIf="editingCategoryId !== c.id"
+                        (click)="startEditCategory(c)">✎</button>
+                    <button class="icon-btn" *ngIf="editingCategoryId !== c.id"
+                        (click)="deleteCategory(c.id)">✕</button>
+
+                    <button class="add-btn" *ngIf="editingCategoryId === c.id"
+                        (click)="saveEditCategory(c.id)">Save</button>
+                    <button class="icon-btn" *ngIf="editingCategoryId === c.id"
+                        (click)="cancelEditCategory()">✕</button>
+                </td>
             </tr>
         </tbody>
+        <tfoot>
+            <tr>
+                <td>
+                    <input type="text" [(ngModel)]="newCategory.name" placeholder="New category name">
+                </td>
+                <td><button class="add-btn" (click)="createCategory()">Add</button></td>
+            </tr>
+        </tfoot>
     </table>
 </section>

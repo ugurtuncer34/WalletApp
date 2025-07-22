@@ -12,6 +12,8 @@ import { TransactionReadDto } from '../../models/transaction-read-dto';
 import { AccountCreateDto } from '../../models/account-create-dto';
 import { TransactionUpdateDto } from '../../models/transaction-update-dto';
 import { AccountUpdateDto } from '../../models/account-update-dto';
+import { CategoryCreateDto } from '../../models/category-create-dto';
+import { CategoryUpdateDto } from '../../models/category-update-dto';
 
 @Component({
   selector: 'app-home-component',
@@ -46,7 +48,7 @@ export class HomeComponent {
   }
 
   balance$ = this.acService.balance$;   // just re-expose
-  
+
   currencyStringToNumber(cur: string): number {
     switch (cur) {
       case 'TRY': return 1;
@@ -67,6 +69,10 @@ export class HomeComponent {
   newAccount: AccountCreateDto = {
     name: '',
     currency: 1 // default TRY
+  };
+
+  newCategory: CategoryCreateDto = {
+    name: ''
   };
 
   editingId: number | null = null;
@@ -120,11 +126,15 @@ export class HomeComponent {
     });
   }
 
-  // optional: trackBy for performance
+  // optional: trackBy for performance when not using new @for usage
   trackById = (_: number, item: TransactionReadDto) => item.id;
 
+  //////// Account section
   editingAccountId: number | null = null;
   editAccount: AccountUpdateDto | null = null;
+  
+  editingCategoryId: number | null = null;
+  editCategory: CategoryUpdateDto | null = null;
 
   startEditAccount(a: AccountReadDto) {
     this.editingAccountId = a.id;
@@ -166,6 +176,50 @@ export class HomeComponent {
     if (!confirm('Delete this account?')) return;
     this.acService.delete(id).subscribe({
       next: () => this.accounts$ = this.acService.list(),
+      error: err => alert('Delete failed: ' + err.message)
+    });
+  }
+
+  /////// Category section
+  startEditCategory(c: CategoryReadDto) {
+    this.editingCategoryId = c.id;
+    this.editCategory = {
+      name: c.name
+    };
+  }
+
+  cancelEditCategory() {
+    this.editingCategoryId = null;
+    this.editCategory = null;
+  }
+
+  saveEditCategory(id: number) {
+    if (!this.editCategory) return;
+    this.ctService.update(id, this.editCategory).subscribe({
+      next: () => {
+        this.categories$ = this.ctService.list();  // refresh
+        this.cancelEditCategory();
+      },
+      error: err => alert('Update failed: ' + err.message)
+    });
+  }
+
+  createCategory() {
+    if (!this.newCategory.name.trim()) return alert('Name required');
+
+    this.ctService.create(this.newCategory).subscribe({
+      next: () => {
+        this.categories$ = this.ctService.list();
+        this.newCategory = { name: '' };
+      },
+      error: err => alert('Create failed: ' + err.message)
+    });
+  }
+
+  deleteCategory(id: number) {
+    if (!confirm('Delete this category?')) return;
+    this.ctService.delete(id).subscribe({
+      next: () => this.categories$ = this.ctService.list(),
       error: err => alert('Delete failed: ' + err.message)
     });
   }
