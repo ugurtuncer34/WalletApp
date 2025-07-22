@@ -128,8 +128,18 @@ tx.MapDelete("/{id:int}", async (WalletDbContext db, int id) =>
 });
 
 // Account Endpoints
-ax.MapGet("/", async (WalletDbContext db) => await db.Accounts.ToListAsync());
-ax.MapGet("/{id:int}", async (WalletDbContext db, int id) => await db.Accounts.FindAsync(id));
+ax.MapGet("/", async (WalletDbContext db, IMapper mapper) =>
+{
+    var list = await db.Accounts.ToListAsync();
+    return Results.Ok(mapper.Map<IEnumerable<AccountReadDto>>(list));
+});
+ax.MapGet("/{id:int}", async (WalletDbContext db, IMapper mapper, int id) =>
+{
+    var entity = await db.Accounts.FindAsync(id);
+    return entity is null
+        ? Results.NotFound()
+        : Results.Ok(mapper.Map<AccountReadDto>(entity));
+});
 ax.MapGet("/{id:int}/balance", async (WalletDbContext db, int id) =>
 {
     var accountExists = await db.Accounts.AnyAsync(a => a.Id == id);
