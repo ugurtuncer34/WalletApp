@@ -3,7 +3,7 @@
 /* give the host element a bit of breathing room */
 :host {
   display: block;
-  padding: 1rem;
+  padding: .5rem;
   font-family: system-ui, sans-serif;
 }
 
@@ -44,6 +44,36 @@ tbody td {
 tbody tr:hover {
   background-color: #f1f7ff;
 }
+
+/* scroll container */
+.table-wrap {
+  max-height: 520px;
+  overflow: auto;
+  /* optional: border-radius, border, etc. */
+}
+
+/* keep your existing table styles … */
+
+/* sticky header */
+.table-wrap thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  /* above body rows */
+  background: #f5f5f5;
+  /* must have background or you'll see rows under */
+}
+
+/* sticky footer */
+.table-wrap tfoot td {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: #f5f5f5;
+  /* match header or white */
+  border-top: 2px solid #ddd;
+}
+
 
 /* right‑align numeric column (add class="amount" in template) */
 .amount {
@@ -135,4 +165,70 @@ tbody tr:hover {
 .filters select {
   margin-left: 0.35rem;
   padding: 0.25rem 0.4rem;
+}
+
+.add-form {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  margin-top: .75rem;
+  flex-wrap: wrap;
+  /* stacks nicely on small screens */
+}
+
+.add-form input,
+.add-form select {
+  padding: .35rem .5rem;
+  font-size: .9rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.add-form input {
+  flex: 1 1 200px;
+  /* grow but keep a sensible min width */
+}
+
+.add-form select {
+  flex: 0 0 90px;
+  min-width: 90px;
+}
+
+.add-form .add-btn {
+  flex: 0 0 auto;
+}
+
+.tx-form {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  margin-top: .75rem;
+  flex-wrap: wrap;
+}
+
+.tx-form input,
+.tx-form select {
+  padding: .35rem .5rem;
+  font-size: .9rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.tx-form input[type="date"] {
+  flex: 0 0 150px;
+}
+
+.tx-form select {
+  flex: 0 0 140px;
+  min-width: 120px;
+}
+
+.tx-form .amount-input {
+  flex: 0 0 110px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.tx-form .add-btn {
+  flex: 0 0 auto;
 }
