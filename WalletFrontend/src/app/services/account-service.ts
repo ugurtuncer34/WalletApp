@@ -22,14 +22,21 @@ export class AccountService {
   delete(id: number) {
     return this.http.delete(`${this.api}/${id}`);
   }
-  // balance cache in order to pipe accounts
-  private balanceCache = new Map<number, Observable<number>>();
+  
+  // balance(id: number) {
+  //   return this.http.get<BalanceDto>(`${this.api}/${id}/balance`).pipe(
+  //     map(r => r.balance)
+  //   );
+  // } // simpler solution
 
+  // balance cache in order to pipe accounts
+  private balanceCache = new Map<number, Observable<number>>(); //remember observables per account id
+  
   balance(id: number): Observable<number> {
     if (!this.balanceCache.has(id)) {
       const obs = this.http.get<BalanceDto>(`${this.api}/${id}/balance`).pipe(
         map(r => r.balance),
-        shareReplay(1)                 // cache the result
+        shareReplay(1) //make each observable “sticky” so multiple subscribers don’t re-call HTTP
       );
       this.balanceCache.set(id, obs);
     }
