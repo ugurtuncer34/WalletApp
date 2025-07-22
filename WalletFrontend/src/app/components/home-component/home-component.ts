@@ -9,6 +9,7 @@ import { AccountReadDto } from '../../models/account-read-dto';
 import { CategoryReadDto } from '../../models/category-read-dto';
 import { Observable } from 'rxjs';
 import { TransactionReadDto } from '../../models/transaction-read-dto';
+import { AccountCreateDto } from '../../models/account-create-dto';
 
 @Component({
   selector: 'app-home-component',
@@ -52,6 +53,11 @@ export class HomeComponent {
     categoryId: 1
   };
 
+  newAccount: AccountCreateDto = {
+    name: '',
+    currency: 1 // default TRY
+  };
+
   txSave() {
     this.txService.create(this.newTransaction).subscribe({
       next: () => {
@@ -75,4 +81,24 @@ export class HomeComponent {
 
   // optional: trackBy for performance
   trackById = (_: number, item: TransactionReadDto) => item.id;
+
+  createAccount() {
+    if (!this.newAccount.name.trim()) return alert('Name required');
+
+    this.acService.create(this.newAccount).subscribe({
+      next: () => {
+        this.accounts$ = this.acService.list();  // refresh list
+        this.newAccount = { name: '', currency: 1 };
+      },
+      error: err => alert('Create failed: ' + err.message)
+    });
+  }
+
+  deleteAccount(id: number) {
+    if (!confirm('Delete this account?')) return;
+    this.acService.delete(id).subscribe({
+      next: () => this.accounts$ = this.acService.list(),
+      error: err => alert('Delete failed: ' + err.message)
+    });
+  }
 }

@@ -4,6 +4,7 @@ import { environment } from '../../environments/environment';
 import { AccountReadDto } from '../models/account-read-dto';
 import { BalanceDto } from '../models/balance-dto';
 import { map, Observable, shareReplay } from 'rxjs';
+import { AccountCreateDto } from '../models/account-create-dto';
 
 @Injectable({
   providedIn: 'root'
@@ -16,13 +17,13 @@ export class AccountService {
   list() {
     return this.http.get<AccountReadDto[]>(this.api);
   }
-  create(body: Partial<AccountReadDto>) {
-    return this.http.post(this.api, body);
+  create(body: AccountCreateDto) {
+    return this.http.post<AccountReadDto>(`${this.api}`, body);
   }
   delete(id: number) {
     return this.http.delete(`${this.api}/${id}`);
   }
-  
+
   // balance(id: number) {
   //   return this.http.get<BalanceDto>(`${this.api}/${id}/balance`).pipe(
   //     map(r => r.balance)
@@ -31,7 +32,7 @@ export class AccountService {
 
   // balance cache in order to pipe accounts
   private balanceCache = new Map<number, Observable<number>>(); //remember observables per account id
-  
+
   balance(id: number): Observable<number> {
     if (!this.balanceCache.has(id)) {
       const obs = this.http.get<BalanceDto>(`${this.api}/${id}/balance`).pipe(

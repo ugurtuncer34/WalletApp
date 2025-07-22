@@ -162,19 +162,23 @@ ax.MapGet("/{id:int}/balance", async (WalletDbContext db, int id) =>
                                             : -t.Amount);
     return Results.Ok(new BalanceDto(id, balance));
 });
-ax.MapPost("/", async (WalletDbContext db, Account account) =>
+ax.MapPost("/", async (WalletDbContext db, IMapper mapper, AccountCreateDto dto) =>
 {
-    if (string.IsNullOrWhiteSpace(account.Name)) return Results.BadRequest("Account must be named");
-    await db.Accounts.AddAsync(account);
+    if (string.IsNullOrWhiteSpace(dto.Name)) return Results.BadRequest("Account must be named");
+
+    var entity = mapper.Map<Account>(dto);
+    db.Accounts.Add(entity);
     await db.SaveChangesAsync();
-    return Results.Created($"/accounts/{account.Id}", account);
+
+    return Results.Created($"/accounts/{entity.Id}",
+        mapper.Map<AccountReadDto>(entity));
 });
-ax.MapPut("/{id:int}", async (WalletDbContext db, Account updatedAccount, int id) =>
+ax.MapPut("/{id:int}", async (WalletDbContext db, IMapper mapper, int id, AccountUpdateDto dto) =>
 {
-    var account = await db.Accounts.FindAsync(id);
-    if (account is null) return Results.NotFound();
-    account.Name = updatedAccount.Name;
-    account.Currency = updatedAccount.Currency;
+    var entity = await db.Accounts.FindAsync(id);
+    if (entity is null) return Results.NotFound();
+
+    mapper.Map(dto, entity);
     await db.SaveChangesAsync();
     return Results.NoContent();
 });

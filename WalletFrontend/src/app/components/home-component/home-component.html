@@ -54,14 +54,12 @@
                 </td>
                 <td>
                     <select [(ngModel)]="newTransaction.accountId">
-                        <option [ngValue]="1">Cash</option>
-                        <!-- later: loop accounts$ | async -->
+                        <option *ngFor="let a of accounts$ | async" [ngValue]="a.id">{{ a.name }}</option>
                     </select>
                 </td>
                 <td>
                     <select [(ngModel)]="newTransaction.categoryId">
-                        <option [ngValue]="1">Fun</option>
-                        <!-- later: categories$ -->
+                        <option *ngFor="let c of categories$ | async" [ngValue]="c.id">{{ c.name }}</option>
                     </select>
                 </td>
                 <td>
@@ -93,6 +91,7 @@
                 <th>Account Name</th>
                 <th>Currency</th>
                 <th class="amount">Balance</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -101,9 +100,27 @@
                 <td>{{ a.name }}</td>
                 <td>{{ a.currency }}</td>
                 <td class="amount">{{ (balance$(a.id) | async) ?? '…' }}</td>
+                <td><button class="icon-btn" (click)="deleteAccount(a.id)">✕</button></td>
             </tr>
             }
         </tbody>
+
+        <tfoot>
+            <tr>
+                <td>
+                    <input type="text" [(ngModel)]="newAccount.name" placeholder="New account name">
+                </td>
+                <td>
+                    <select [(ngModel)]="newAccount.currency">
+                        <option [ngValue]="1">TRY</option>
+                        <option [ngValue]="2">EUR</option>
+                        <option [ngValue]="3">USD</option>
+                    </select>
+                </td>
+                <td class="amount">—</td>
+                <td><button class="add-btn" (click)="createAccount()">Add</button></td>
+            </tr>
+        </tfoot>
     </table>
 </section>
 <section>
