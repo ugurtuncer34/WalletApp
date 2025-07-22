@@ -60,7 +60,7 @@ var ax = app.MapGroup("/accounts").WithTags("Accounts");
 var cx = app.MapGroup("/categories").WithTags("Categories");
 
 // Transaction Endpoints
-tx.MapGet("/", async (WalletDbContext db, IMapper mapper, string? month) =>
+tx.MapGet("/", async (WalletDbContext db, IMapper mapper, string? month, int? accountId, int? categoryId) =>
 {
     // base query includes navs so AutoMapper can read names
     IQueryable<Transaction> query = db.Transactions
@@ -75,6 +75,16 @@ tx.MapGet("/", async (WalletDbContext db, IMapper mapper, string? month) =>
     {
         var monthEnd = monthStart.AddMonths(1);
         query = query.Where(t => t.Date >= monthStart && t.Date < monthEnd);
+    }
+
+    //if(accountId.HasValue && accountId.Value > 0)
+    if (accountId is int accId && accId > 0)
+    {
+        query = query.Where(t => t.AccountId == accId);
+    }
+    if (categoryId is int ctgId && ctgId > 0)
+    {
+        query = query.Where(t => t.CategoryId == ctgId);
     }
 
     var list = await query.ToListAsync();
