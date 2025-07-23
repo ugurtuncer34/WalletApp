@@ -5,4 +5,5 @@ public class WalletDbContext(DbContextOptions<WalletDbContext> options) : DbCont
     public DbSet<Account> Accounts { get; set; } = null!;
     public DbSet<Category> Categories { get; set; } = null!;
     public DbSet<Transaction> Transactions { get; set; } = null!;
+    public DbSet<User> Users => Set<User>();
 }

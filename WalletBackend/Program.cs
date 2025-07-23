@@ -7,14 +7,25 @@ global using WalletBackend.Mapping;
 using Microsoft.OpenApi.Models;
 using AutoMapper;
 using System.Globalization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http.Json;
+using System.IdentityModel.Tokens.Jwt;
+using System.IO.Compression;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var jwt = builder.Configuration.GetSection("Jwt");
+var keyBytes = Encoding.UTF8.GetBytes(jwt["Key"]!);
+
 var connectionString = builder.Configuration.GetConnectionString("Wallet") ?? "Data Source=Wallet.db";
+
 builder.Services.AddEndpointsApiExplorer();
 //builder.Services.AddDbContext<WalletDbContext>(options => options.UseInMemoryDatabase("WalletDb"));
-builder.Services.AddSqlite<WalletDbContext>(connectionString);
 //builder.Services.AddDbContext<WalletDbContext>(opt => opt.UseSqlite(connectionString));
+builder.Services.AddSqlite<WalletDbContext>(connectionString);
 builder.Services.AddCors(opt => opt.AddPolicy("dev",
     p => p.WithOrigins("http://localhost:4200")
         .AllowAnyHeader()
@@ -22,8 +33,47 @@ builder.Services.AddCors(opt => opt.AddPolicy("dev",
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "WalletBackend", Description = "Personal Wallet APIs", Version = "v1" });
+
+    var jwtScheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Type **Bearer {your JWT}** into the text box below.",
+        Reference = new OpenApiReference
+        {
+            Type = ReferenceType.SecurityScheme,
+            Id = "Bearer"
+        }
+    };
+
+    c.AddSecurityDefinition("Bearer", jwtScheme);
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {jwtScheme, Array.Empty<string>()}
+    });
 });
 builder.Services.AddAutoMapper(typeof(TransactionProfile));
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidateLifetime = true,
+
+            ValidIssuer = jwt["Issuer"],
+            ValidAudience = jwt["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+builder.Services.AddAuthorization(); // policies later if needed
 
 var app = builder.Build();
 
@@ -42,6 +92,12 @@ using (var scope = app.Services.CreateScope())
         db.Categories.Add(fun);
         db.SaveChanges();
     }
+    if (!db.Users.Any())
+    {
+        var hash = BCrypt.Net.BCrypt.HashPassword("P@ssw0rd!");
+        db.Users.Add(new User { Email = "test@wallet.dev", PasswordHash = hash, Role = "User" });
+        db.SaveChanges();
+    }
 }
 
 if (app.Environment.IsDevelopment())
@@ -52,12 +108,60 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "WalletBackend API V1");
     });
 }
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.MapGet("/", () => "Hello World!");
+//////////// AUTH /////////////
+var auth = app.MapGroup("/auth").AllowAnonymous().WithTags("Auth");
 
-var tx = app.MapGroup("/transactions").WithTags("Transactions");
-var ax = app.MapGroup("/accounts").WithTags("Accounts");
-var cx = app.MapGroup("/categories").WithTags("Categories");
+auth.MapPost("/register", async (WalletDbContext db, RegisterDto dto) =>
+{
+    if (await db.Users.AnyAsync(u => u.Email == dto.Email))
+        return Results.BadRequest("Email already exists");
+
+    var hash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+    var user = new User { Email = dto.Email, PasswordHash = hash };
+    db.Users.Add(user);
+    await db.SaveChangesAsync();
+    return Results.Created($"/users/{user.Id}", new { user.Id, user.Email });
+});
+
+auth.MapPost("/login", async (WalletDbContext db, LoginDto dto) =>
+{
+    var user = await db.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+    if (user is null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+        return Results.Unauthorized();
+
+    // Build claims
+    var claims = new[]{
+        new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+        new Claim(JwtRegisteredClaimNames.Email, user.Email),
+        new Claim(ClaimTypes.Role, user.Role)
+    };
+
+    var key = new SymmetricSecurityKey(keyBytes);
+    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+    var expires = DateTime.UtcNow.AddMinutes(int.Parse(jwt["ExpiresMinutes"]!));
+
+    var token = new JwtSecurityToken(
+        issuer: jwt["Issuer"],
+        audience: jwt["Audience"],
+        claims: claims,
+        expires: expires,
+        signingCredentials: creds
+    );
+
+    var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
+    return Results.Ok(new AuthResponseDto(tokenString, expires));
+});
+//////////// AUTH /////////////
+
+app.MapGet("/", () => "go /swagger");
+
+var tx = app.MapGroup("/transactions").WithTags("Transactions").RequireAuthorization();
+var ax = app.MapGroup("/accounts").WithTags("Accounts").RequireAuthorization();
+var cx = app.MapGroup("/categories").WithTags("Categories").RequireAuthorization();
 
 // Transaction Endpoints
 tx.MapGet("/", async (WalletDbContext db, IMapper mapper, string? month, int? accountId, int? categoryId) =>
@@ -86,6 +190,8 @@ tx.MapGet("/", async (WalletDbContext db, IMapper mapper, string? month, int? ac
     {
         query = query.Where(t => t.CategoryId == ctgId);
     }
+
+    query = query.OrderByDescending(t => t.Date);
 
     var list = await query.ToListAsync();
     return Results.Ok(mapper.Map<IEnumerable<TransactionReadDto>>(list));
