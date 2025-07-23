@@ -1,99 +1,122 @@
-<div class="container-fluid py-3 px-0">
-    <div class="row  gx-3 gy-3">
-        <section class="col-lg-8 col-12 px-3">
-            <h2>Transactions</h2>
-            <!-- Filter bar -->
-            <div class="filters">
-                <label>
-                    Month:
-                    <input type="month" [(ngModel)]="selectedMonth" (ngModelChange)="reload()">
-                </label>
+<div *ngIf="!(auth.token$ | async); else loggedInBox" class="login-box">
+    <form (ngSubmit)="doLogin()" class="login-form">
+        <input type="email" [(ngModel)]="loginDto.email" name="email" placeholder="Email" required>
+        <input type="password" [(ngModel)]="loginDto.password" name="password" placeholder="Password" required>
+        <button class="add-btn" type="submit" [disabled]="isLoggingIn">Login</button>
+    </form>
+</div>
+<ng-template #loggedInBox>
+    <div class="login-info">
+        Logged in as {{ loginDto.email }} <!-- or decode token later -->
+        <button class="icon-btn" (click)="doLogout()">Logout</button>
+    </div>
+</ng-template>
 
-                <label>
-                    Account:
-                    <select [(ngModel)]="selectedAccountId" (change)="reload()">
-                        <option [ngValue]="null">All</option>
-                        <option *ngFor="let a of accounts$ | async" [ngValue]="a.id">{{ a.name }}</option>
-                    </select>
-                </label>
+<!-- Auth Switch -->
 
-                <label>
-                    Category:
-                    <select [(ngModel)]="selectedCategoryId" (change)="reload()">
-                        <option [ngValue]="null">All</option>
-                        <option *ngFor="let c of categories$ | async" [ngValue]="c.id">{{ c.name }}</option>
-                    </select>
-                </label>
-            </div>
-            <div class="table-wrap">
-                <table *ngIf="transactions$ | async as list; else loading">
-                    <!-- async pipe subscribes/unsubscribes automatically and exposes the array as list -->
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Account</th>
-                            <th>Category</th>
-                            <th>Direction</th>
-                            <th>Amount</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let t of list; trackBy: trackById">
-                            <!-- Date -->
-                            <td *ngIf="editingId !== t.id">{{ t.date | date:'yyyy-MM-dd' }}</td>
-                            <td *ngIf="editingId === t.id">
-                                <input type="date" [(ngModel)]="editTxn!.date">
-                            </td>
+<div *ngIf="auth.token$ | async; else pleaseLogin">
+    <div class="container-fluid py-3 px-0">
+        <div class="row  gx-3 gy-3">
+            <section class="col-lg-8 col-12 px-3">
+                <h2>Transactions</h2>
+                <!-- Filter bar -->
+                <div class="filters">
+                    <label>
+                        Month:
+                        <input type="month" [(ngModel)]="selectedMonth" (ngModelChange)="reload()">
+                    </label>
 
-                            <!-- Account -->
-                            <td *ngIf="editingId !== t.id">{{ t.accountName }}</td>
-                            <td *ngIf="editingId === t.id">
-                                <select [(ngModel)]="editTxn!.accountId">
-                                    <option *ngFor="let a of accounts$ | async" [ngValue]="a.id">{{ a.name }}</option>
-                                </select>
-                            </td>
+                    <label>
+                        Account:
+                        <select [(ngModel)]="selectedAccountId" (change)="reload()">
+                            <option [ngValue]="null">All</option>
+                            <option *ngFor="let a of accounts$ | async" [ngValue]="a.id">{{ a.name }}</option>
+                        </select>
+                    </label>
 
-                            <!-- Category -->
-                            <td *ngIf="editingId !== t.id">{{ t.categoryName }}</td>
-                            <td *ngIf="editingId === t.id">
-                                <select [(ngModel)]="editTxn!.categoryId">
-                                    <option *ngFor="let c of categories$ | async" [ngValue]="c.id">{{ c.name }}</option>
-                                </select>
-                            </td>
+                    <label>
+                        Category:
+                        <select [(ngModel)]="selectedCategoryId" (change)="reload()">
+                            <option [ngValue]="null">All</option>
+                            <option *ngFor="let c of categories$ | async" [ngValue]="c.id">{{ c.name }}</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="table-wrap">
+                    <table *ngIf="transactions$ | async as list; else loading">
+                        <!-- async pipe subscribes/unsubscribes automatically and exposes the array as list -->
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Account</th>
+                                <th>Category</th>
+                                <th>Direction</th>
+                                <th>Amount</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let t of list; trackBy: trackById">
+                                <!-- Date -->
+                                <td *ngIf="editingId !== t.id">{{ t.date | date:'yyyy-MM-dd' }}</td>
+                                <td *ngIf="editingId === t.id">
+                                    <input type="date" [(ngModel)]="editTxn!.date">
+                                </td>
 
-                            <!-- Direction -->
-                            <td class="direction-{{ t.direction | lowercase }}" *ngIf="editingId !== t.id">{{
-                                t.direction }}
-                            </td>
-                            <td *ngIf="editingId === t.id">
-                                <select [(ngModel)]="editTxn!.direction">
-                                    <option [ngValue]="1">Income</option>
-                                    <option [ngValue]="2">Expense</option>
-                                </select>
-                            </td>
+                                <!-- Account -->
+                                <td *ngIf="editingId !== t.id">{{ t.accountName }}</td>
+                                <td *ngIf="editingId === t.id">
+                                    <select [(ngModel)]="editTxn!.accountId">
+                                        <option *ngFor="let a of accounts$ | async" [ngValue]="a.id">{{ a.name }}
+                                        </option>
+                                    </select>
+                                </td>
 
-                            <!-- Amount -->
-                            <td class="amount" *ngIf="editingId !== t.id">{{ t.amount | number:'1.2-2' }}</td>
-                            <td class="amount" *ngIf="editingId === t.id">
-                                <input type="number" min="0.01" step="0.01" [(ngModel)]="editTxn!.amount">
-                            </td>
+                                <!-- Category -->
+                                <td *ngIf="editingId !== t.id">{{ t.categoryName }}</td>
+                                <td *ngIf="editingId === t.id">
+                                    <select [(ngModel)]="editTxn!.categoryId">
+                                        <option *ngFor="let c of categories$ | async" [ngValue]="c.id">{{ c.name }}
+                                        </option>
+                                    </select>
+                                </td>
 
-                            <!-- Actions -->
-                            <td>
-                                <!-- view mode buttons -->
-                                <button class="icon-btn" *ngIf="editingId !== t.id" (click)="startEdit(t)">✎</button>
-                                <button class="icon-btn" *ngIf="editingId !== t.id" (click)="txDelete(t.id)">✕</button>
+                                <!-- Direction -->
+                                <td class="direction-{{ t.direction | lowercase }}" *ngIf="editingId !== t.id">{{
+                                    t.direction }}
+                                </td>
+                                <td *ngIf="editingId === t.id">
+                                    <select [(ngModel)]="editTxn!.direction">
+                                        <option [ngValue]="1">Income</option>
+                                        <option [ngValue]="2">Expense</option>
+                                    </select>
+                                </td>
 
-                                <!-- edit mode buttons -->
-                                <button class="add-btn" *ngIf="editingId === t.id"
-                                    (click)="saveEdit(t.id)">Save</button>
-                                <button class="icon-btn" *ngIf="editingId === t.id" (click)="cancelEdit()">✕</button>
-                            </td>
-                        </tr>
+                                <!-- Amount -->
+                                <td class="amount" *ngIf="editingId !== t.id">{{ t.amount | number:'1.2-2' }}</td>
+                                <td class="amount" *ngIf="editingId === t.id">
+                                    <input type="number" min="0.01" step="0.01" [(ngModel)]="editTxn!.amount">
+                                </td>
 
-                    </tbody>
-                </table>
+                                <!-- Actions -->
+                                <td>
+                                    <!-- view mode buttons -->
+                                    <button class="icon-btn" *ngIf="editingId !== t.id"
+                                        (click)="startEdit(t)">✎</button>
+                                    <button class="icon-btn" *ngIf="editingId !== t.id"
+                                        (click)="txDelete(t.id)">✕</button>
+
+                                    <!-- edit mode buttons -->
+                                    <button class="add-btn" *ngIf="editingId === t.id"
+                                        (click)="saveEdit(t.id)">Save</button>
+                                    <button class="icon-btn" *ngIf="editingId === t.id"
+                                        (click)="cancelEdit()">✕</button>
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
                 <form class="tx-form" (ngSubmit)="txSave()">
                     <input type="date" [(ngModel)]="newTransaction.date" name="date" required />
 
@@ -115,111 +138,118 @@
 
                     <button type="submit" class="add-btn">Add</button>
                 </form>
-            </div>
-            <ng-template #loading>
-                <p>Loading...</p>
-            </ng-template>
-        </section>
-        <!-- Account Table -->
-        <section class="col-lg-4 col-12 py-5">
-            <h2>Accounts</h2>
-            <table *ngIf="accounts$ | async as acclist; else loading">
-                <thead>
-                    <tr>
-                        <th>Account Name</th>
-                        <th>Currency</th>
-                        <th class="amount">Balance</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (a of acclist; track a.id) {
-                    <tr>
-                        <!-- Name -->
-                        <td *ngIf="editingAccountId !== a.id">{{ a.name }}</td>
-                        <td *ngIf="editingAccountId === a.id">
-                            <input type="text" [(ngModel)]="editAccount!.name">
-                        </td>
+                <ng-template #loading>
+                    <p>Loading...</p>
+                </ng-template>
+            </section>
+            <!-- Account Table -->
+            <section class="col-lg-4 col-12 py-5">
+                <h2>Accounts</h2>
+                <div class="table-wrap" style="max-height: 220px !important;">
+                    <table *ngIf="accounts$ | async as acclist; else loading">
+                        <thead>
+                            <tr>
+                                <th>Account Name</th>
+                                <th>Currency</th>
+                                <th class="amount">Balance</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (a of acclist; track a.id) {
+                            <tr>
+                                <!-- Name -->
+                                <td *ngIf="editingAccountId !== a.id">{{ a.name }}</td>
+                                <td *ngIf="editingAccountId === a.id">
+                                    <input type="text" [(ngModel)]="editAccount!.name">
+                                </td>
 
-                        <!-- Currency -->
-                        <td *ngIf="editingAccountId !== a.id">{{ a.currency }}</td>
-                        <td *ngIf="editingAccountId === a.id">
-                            <select [(ngModel)]="editAccount!.currency">
-                                <option [ngValue]="1">TRY</option>
-                                <option [ngValue]="2">EUR</option>
-                                <option [ngValue]="3">USD</option>
-                            </select>
-                        </td>
+                                <!-- Currency -->
+                                <td *ngIf="editingAccountId !== a.id">{{ a.currency }}</td>
+                                <td *ngIf="editingAccountId === a.id">
+                                    <select [(ngModel)]="editAccount!.currency">
+                                        <option [ngValue]="1">TRY</option>
+                                        <option [ngValue]="2">EUR</option>
+                                        <option [ngValue]="3">USD</option>
+                                    </select>
+                                </td>
 
-                        <!-- Balance (read‑only) -->
-                        <td class="amount">{{ (balance$(a.id) | async) ?? '…' }}</td>
+                                <!-- Balance (read‑only) -->
+                                <td class="amount">{{ (balance$(a.id) | async) ?? '…' }}</td>
 
-                        <!-- Actions -->
-                        <td>
-                            <!-- view mode -->
-                            <button class="icon-btn" *ngIf="editingAccountId !== a.id"
-                                (click)="startEditAccount(a)">✎</button>
-                            <button class="icon-btn" *ngIf="editingAccountId !== a.id"
-                                (click)="deleteAccount(a.id)">✕</button>
+                                <!-- Actions -->
+                                <td>
+                                    <!-- view mode -->
+                                    <button class="icon-btn" *ngIf="editingAccountId !== a.id"
+                                        (click)="startEditAccount(a)">✎</button>
+                                    <button class="icon-btn" *ngIf="editingAccountId !== a.id"
+                                        (click)="deleteAccount(a.id)">✕</button>
 
-                            <!-- edit mode -->
-                            <button class="add-btn" *ngIf="editingAccountId === a.id"
-                                (click)="saveEditAccount(a.id)">Save</button>
-                            <button class="icon-btn" *ngIf="editingAccountId === a.id"
-                                (click)="cancelEditAccount()">✕</button>
-                        </td>
-                    </tr>
-                    }
-                </tbody>
-            </table>
-            <form class="add-form" (ngSubmit)="createAccount()">
-                <input [(ngModel)]="newAccount.name" name="name" placeholder="New account name" required>
-                <select [(ngModel)]="newAccount.currency" name="currency" required>
-                    <option [ngValue]="1">TRY</option>
-                    <option [ngValue]="2">EUR</option>
-                    <option [ngValue]="3">USD</option>
-                </select>
-                <button type="submit" class="add-btn">Add</button>
-            </form>
+                                    <!-- edit mode -->
+                                    <button class="add-btn" *ngIf="editingAccountId === a.id"
+                                        (click)="saveEditAccount(a.id)">Save</button>
+                                    <button class="icon-btn" *ngIf="editingAccountId === a.id"
+                                        (click)="cancelEditAccount()">✕</button>
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <form class="add-form" (ngSubmit)="createAccount()">
+                    <input [(ngModel)]="newAccount.name" name="name" placeholder="New account name" required>
+                    <select [(ngModel)]="newAccount.currency" name="currency" required>
+                        <option [ngValue]="1">TRY</option>
+                        <option [ngValue]="2">EUR</option>
+                        <option [ngValue]="3">USD</option>
+                    </select>
+                    <button type="submit" class="add-btn">Add</button>
+                </form>
 
-            <!-- </section>
+                <!-- </section>
         <section> -->
 
-            <h2 style="padding-top: 1rem;">Categories</h2>
-            <table *ngIf="categories$ | async as ctglist; else loading">
-                <thead>
-                    <tr>
-                        <th>
-                            Category Name
-                        </th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let c of ctglist">
-                        <td *ngIf="editingCategoryId !== c.id">{{ c.name }}</td>
-                        <td *ngIf="editingCategoryId === c.id">
-                            <input type="text" [(ngModel)]="editCategory!.name">
-                        </td>
+                <h2 style="padding-top: 1rem;">Categories</h2>
+                <div class="table-wrap" style="max-height: 220px !important;">
+                    <table *ngIf="categories$ | async as ctglist; else loading">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Category Name
+                                </th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let c of ctglist">
+                                <td *ngIf="editingCategoryId !== c.id">{{ c.name }}</td>
+                                <td *ngIf="editingCategoryId === c.id">
+                                    <input type="text" [(ngModel)]="editCategory!.name">
+                                </td>
 
-                        <td>
-                            <button class="icon-btn" *ngIf="editingCategoryId !== c.id"
-                                (click)="startEditCategory(c)">✎</button>
-                            <button class="icon-btn" *ngIf="editingCategoryId !== c.id"
-                                (click)="deleteCategory(c.id)">✕</button>
+                                <td>
+                                    <button class="icon-btn" *ngIf="editingCategoryId !== c.id"
+                                        (click)="startEditCategory(c)">✎</button>
+                                    <button class="icon-btn" *ngIf="editingCategoryId !== c.id"
+                                        (click)="deleteCategory(c.id)">✕</button>
 
-                            <button class="add-btn" *ngIf="editingCategoryId === c.id"
-                                (click)="saveEditCategory(c.id)">Save</button>
-                            <button class="icon-btn" *ngIf="editingCategoryId === c.id"
-                                (click)="cancelEditCategory()">✕</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <form class="add-form" (ngSubmit)="createCategory()">
-                <input [(ngModel)]="newCategory.name" name="name" placeholder="New category name" required>
-                <button type="submit" class="add-btn">Add</button>
-            </form>
-        </section>
+                                    <button class="add-btn" *ngIf="editingCategoryId === c.id"
+                                        (click)="saveEditCategory(c.id)">Save</button>
+                                    <button class="icon-btn" *ngIf="editingCategoryId === c.id"
+                                        (click)="cancelEditCategory()">✕</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <form class="add-form" (ngSubmit)="createCategory()">
+                    <input [(ngModel)]="newCategory.name" name="name" placeholder="New category name" required>
+                    <button type="submit" class="add-btn">Add</button>
+                </form>
+            </section>
+        </div>
     </div>
 </div>
+<ng-template #pleaseLogin>
+    <p>Please log in to view data.</p>
+</ng-template>

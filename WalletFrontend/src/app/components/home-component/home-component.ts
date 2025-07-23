@@ -14,6 +14,8 @@ import { TransactionUpdateDto } from '../../models/transaction-update-dto';
 import { AccountUpdateDto } from '../../models/account-update-dto';
 import { CategoryCreateDto } from '../../models/category-create-dto';
 import { CategoryUpdateDto } from '../../models/category-update-dto';
+import { LoginDto } from '../../models/auth';
+import { AuthService } from '../../services/auth-service';
 
 @Component({
   selector: 'app-home-component',
@@ -22,6 +24,25 @@ import { CategoryUpdateDto } from '../../models/category-update-dto';
   styleUrl: './home-component.css'
 })
 export class HomeComponent {
+  ////// AUTH //////
+  loginDto: LoginDto = { email: '', password: '' };
+  isLoggingIn = false;
+  auth = inject(AuthService);
+
+  doLogin() {
+    this.isLoggingIn = true;
+    this.auth.login(this.loginDto).subscribe({
+      next: () => { this.isLoggingIn = false; this.reload(); }, // reload data now authorized
+      error: err => { this.isLoggingIn = false; alert('Login failed'); }
+    });
+  }
+
+  doLogout() {
+    this.auth.logout();
+    this.reload(); // will 401, handle gracefully or hide tables when logged out
+  }
+  ////// AUTH //////
+
   private txService = inject(TransactionService); // no constructor needed
   private acService = inject(AccountService);
   private ctService = inject(CategoryService);
@@ -132,7 +153,7 @@ export class HomeComponent {
   //////// Account section
   editingAccountId: number | null = null;
   editAccount: AccountUpdateDto | null = null;
-  
+
   editingCategoryId: number | null = null;
   editCategory: CategoryUpdateDto | null = null;
 

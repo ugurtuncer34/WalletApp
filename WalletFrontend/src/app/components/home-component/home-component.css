@@ -232,3 +232,17 @@ tbody tr:hover {
 .tx-form .add-btn {
   flex: 0 0 auto;
 }
+
+.login-form, .login-info {
+  margin-bottom: 1rem;
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.login-form input {
+  padding: .35rem .5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
