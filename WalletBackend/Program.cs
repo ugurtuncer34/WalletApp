@@ -11,9 +11,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Http.Json;
 using System.IdentityModel.Tokens.Jwt;
-using System.IO.Compression;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -164,12 +162,23 @@ var ax = app.MapGroup("/accounts").WithTags("Accounts").RequireAuthorization();
 var cx = app.MapGroup("/categories").WithTags("Categories").RequireAuthorization();
 
 // Transaction Endpoints
-tx.MapGet("/", async (WalletDbContext db, IMapper mapper, string? month, int? accountId, int? categoryId) =>
+tx.MapGet("/", async (
+        WalletDbContext db,
+        IMapper mapper,
+        string? month,
+        int? accountId,
+        int? categoryId,
+        int page = 1,
+        int pageSize = 20,
+        string? sortBy = "date",
+        string? sortDir = "desc"
+    ) =>
 {
     // base query includes navs so AutoMapper can read names
     IQueryable<Transaction> query = db.Transactions
                     .Include(t => t.Account)
-                    .Include(t => t.Category);
+                    .Include(t => t.Category)
+                    .AsNoTracking();
 
     if (!string.IsNullOrWhiteSpace(month) &&
         DateTime.TryParseExact(month, "yyyy-MM",
@@ -191,10 +200,35 @@ tx.MapGet("/", async (WalletDbContext db, IMapper mapper, string? month, int? ac
         query = query.Where(t => t.CategoryId == ctgId);
     }
 
-    query = query.OrderByDescending(t => t.Date);
+    // total before paging
+    var total = await query.CountAsync();
 
-    var list = await query.ToListAsync();
-    return Results.Ok(mapper.Map<IEnumerable<TransactionReadDto>>(list));
+    // sorting
+    query = (sortBy?.ToLower(), sortDir?.ToLower()) switch
+    {
+        ("amount", "asc") => query.OrderBy(t => (double)t.Amount), // casting for sqlite
+        ("amount", _) => query.OrderByDescending(t => (double)t.Amount),
+
+        ("direction", "asc") => query.OrderBy(t => t.Direction),
+        ("direction", _) => query.OrderByDescending(t => t.Direction),
+
+        // default: date
+        (_, "asc") => query.OrderBy(t => t.Date),
+        _ => query.OrderByDescending(t => t.Date)
+    };
+
+    // paging
+    var skip = page <= 0 ? 0 : (page - 1) * pageSize;
+    var items = await query.Skip(skip).Take(pageSize).ToListAsync();
+
+    var dtoList = mapper.Map<IEnumerable<TransactionReadDto>>(items);
+
+    return Results.Ok(new PagedResult<TransactionReadDto>(
+        Items: dtoList.ToList(),
+        TotalCount: total,
+        Page: page,
+        PageSize: pageSize
+    ));
 })
 .WithSummary("Get all transactions or only those within the given month (yyyy-MM)")
 .WithName("GetTransactions");

@@ -24,6 +24,7 @@ import { AuthService } from '../../services/auth-service';
   styleUrl: './home-component.css'
 })
 export class HomeComponent {
+  readonly Math = Math;
   ////// AUTH //////
   loginDto: LoginDto = { email: '', password: '' };
   isLoggingIn = false;
@@ -47,6 +48,11 @@ export class HomeComponent {
   private acService = inject(AccountService);
   private ctService = inject(CategoryService);
 
+  page = 1;
+  pageSize = 20;
+  sortBy = 'date';
+  sortDir: 'asc' | 'desc' = 'desc';
+
   // filter state (bound via ngModel)
   selectedMonth: string | null = null;  // "2025-07" from <input type="month">
   selectedAccountId: number | null = null;
@@ -57,15 +63,47 @@ export class HomeComponent {
   categories$: Observable<CategoryReadDto[]> = this.ctService.list();
 
   // transactions list (Observable reassigned on each reload)
-  transactions$: Observable<TransactionReadDto[]> = this.txService.list();
+  // transactions$: Observable<TransactionReadDto[]> = this.txService.list();
+  paged$ = this.txService.list(this.currentQuery());
 
-  // called whenever a filter changes
-  reload(): void {
-    this.transactions$ = this.txService.list({
+  currentQuery() {
+    return {
       month: this.selectedMonth ?? undefined,
       accountId: this.selectedAccountId ?? undefined,
-      categoryId: this.selectedCategoryId ?? undefined
-    });
+      categoryId: this.selectedCategoryId ?? undefined,
+      page: this.page,
+      pageSize: this.pageSize,
+      sortBy: this.sortBy,
+      sortDir: this.sortDir
+    };
+  }
+
+  // called whenever a filter changes
+  reload() {
+    this.paged$ = this.txService.list(this.currentQuery());
+  }
+
+  // helpers
+  goTo(page: number) {
+    if (page < 1) return;
+    this.page = page;
+    this.reload();
+  }
+
+  changePageSize(size: number) {
+    this.pageSize = size;
+    this.page = 1;
+    this.reload();
+  }
+
+  sort(col: string) {
+    if (this.sortBy === col) {
+      this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortBy = col;
+      this.sortDir = 'asc';
+    }
+    this.reload();
   }
 
   balance$ = this.acService.balance$;   // just re-expose
@@ -119,8 +157,8 @@ export class HomeComponent {
     if (!this.editTxn) return;
     this.txService.update(id, this.editTxn).subscribe({
       next: () => {
-        this.transactions$ = this.txService.list(/* pass current filters if any */);
         this.cancelEdit();
+        this.reload();
       },
       error: err => alert('Update failed: ' + err.message)
     });
@@ -129,8 +167,9 @@ export class HomeComponent {
   txSave() {
     this.txService.create(this.newTransaction).subscribe({
       next: () => {
-        this.transactions$ = this.txService.list(); //refresh after post
-        this.newTransaction = { ...this.newTransaction, amount: 0 } //reset
+        this.newTransaction = { ...this.newTransaction, amount: 0 }; //reset
+        this.page = 1;
+        this.reload();
       },
       error: err => alert('Save failed: ' + err.message)
     });
@@ -140,8 +179,7 @@ export class HomeComponent {
 
     this.txService.delete(id).subscribe({
       next: () => {
-        // Refresh the list
-        this.transactions$ = this.txService.list();
+        this.reload();
       },
       error: err => alert('Delete failed: ' + err.message)
     });
