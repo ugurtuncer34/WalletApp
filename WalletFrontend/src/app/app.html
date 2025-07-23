@@ -1,5 +1,4 @@
-<main>
-  <section>
-    <router-outlet />
-  </section>
-</main>
+<router-outlet />
+<div class="app-toast" *ngIf="toast.message$ | async as msg">
+    {{ msg }}
+</div>

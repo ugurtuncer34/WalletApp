@@ -16,6 +16,7 @@ import { CategoryCreateDto } from '../../models/category-create-dto';
 import { CategoryUpdateDto } from '../../models/category-update-dto';
 import { LoginDto } from '../../models/auth';
 import { AuthService } from '../../services/auth-service';
+import { ToastService } from '../../services/toast-service';
 
 @Component({
   selector: 'app-home-component',
@@ -25,6 +26,7 @@ import { AuthService } from '../../services/auth-service';
 })
 export class HomeComponent {
   readonly Math = Math;
+  
   ////// AUTH //////
   loginDto: LoginDto = { email: '', password: '' };
   isLoggingIn = false;
@@ -34,7 +36,7 @@ export class HomeComponent {
     this.isLoggingIn = true;
     this.auth.login(this.loginDto).subscribe({
       next: () => { this.isLoggingIn = false; this.reload(); }, // reload data now authorized
-      error: err => { this.isLoggingIn = false; alert('Login failed'); }
+      error: () => { this.isLoggingIn = false; }
     });
   }
 
@@ -160,7 +162,7 @@ export class HomeComponent {
         this.cancelEdit();
         this.reload();
       },
-      error: err => alert('Update failed: ' + err.message)
+      // error: err => alert('Update failed: ' + err.message)
     });
   }
 
@@ -171,7 +173,7 @@ export class HomeComponent {
         this.page = 1;
         this.reload();
       },
-      error: err => alert('Save failed: ' + err.message)
+      // error: err => alert('Save failed: ' + err.message)
     });
   }
   txDelete(id: number) {
@@ -181,7 +183,7 @@ export class HomeComponent {
       next: () => {
         this.reload();
       },
-      error: err => alert('Delete failed: ' + err.message)
+      // error: err => alert('Delete failed: ' + err.message)
     });
   }
 
@@ -215,7 +217,7 @@ export class HomeComponent {
         this.accounts$ = this.acService.list();  // refresh
         this.cancelEditAccount();
       },
-      error: err => alert('Update failed: ' + err.message)
+      // error: err => alert('Update failed: ' + err.message)
     });
   }
 
@@ -227,7 +229,7 @@ export class HomeComponent {
         this.accounts$ = this.acService.list();  // refresh list
         this.newAccount = { name: '', currency: 1 };
       },
-      error: err => alert('Create failed: ' + err.message)
+      // error: err => alert('Create failed: ' + err.message)
     });
   }
 
@@ -235,7 +237,7 @@ export class HomeComponent {
     if (!confirm('Delete this account?')) return;
     this.acService.delete(id).subscribe({
       next: () => this.accounts$ = this.acService.list(),
-      error: err => alert('Delete failed: ' + err.message)
+      // error: err => alert('Delete failed: ' + err.message)
     });
   }
 
@@ -259,7 +261,7 @@ export class HomeComponent {
         this.categories$ = this.ctService.list();  // refresh
         this.cancelEditCategory();
       },
-      error: err => alert('Update failed: ' + err.message)
+      // error: err => alert('Update failed: ' + err.message)
     });
   }
 
@@ -271,7 +273,7 @@ export class HomeComponent {
         this.categories$ = this.ctService.list();
         this.newCategory = { name: '' };
       },
-      error: err => alert('Create failed: ' + err.message)
+      // error: err => alert('Create failed: ' + err.message)
     });
   }
 
@@ -279,7 +281,7 @@ export class HomeComponent {
     if (!confirm('Delete this category?')) return;
     this.ctService.delete(id).subscribe({
       next: () => this.categories$ = this.ctService.list(),
-      error: err => alert('Delete failed: ' + err.message)
+      // error: err => alert('Delete failed: ' + err.message)
     });
   }
 }

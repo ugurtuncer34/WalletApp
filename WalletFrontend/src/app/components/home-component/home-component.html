@@ -15,7 +15,7 @@
 <!-- Auth Switch -->
 
 <div *ngIf="auth.token$ | async; else pleaseLogin">
-    <div class="container-fluid py-3 px-0">
+    <div class="container-fluid py-2 px-0">
         <div class="row  gx-3 gy-3">
             <section class="col-lg-8 col-12 px-3">
                 <h2>Transactions</h2>
@@ -266,5 +266,5 @@
     </div>
 </div>
 <ng-template #pleaseLogin>
-    <p>Please log in to view data.</p>
+    <p style="text-align: center;">Please log in to view data.</p>
 </ng-template>

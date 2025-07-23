@@ -2,7 +2,6 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { TransactionReadDto } from '../models/transaction-read-dto';
 import { environment } from '../../environments/environment';
-import { Observable } from 'rxjs';
 import { TransactionCreateDto } from '../models/transaction-create-dto';
 import { TransactionUpdateDto } from '../models/transaction-update-dto';
 import { PagedResult } from '../models/paged-result';

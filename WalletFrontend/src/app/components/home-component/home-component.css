@@ -234,11 +234,12 @@ tbody tr:hover {
 }
 
 .login-form, .login-info {
-  margin-bottom: 1rem;
+  /* margin-bottom: 1rem; */
   display: flex;
   gap: .5rem;
   align-items: center;
   flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .login-form input {
