@@ -12,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
+using WalletBackend.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,6 +73,7 @@ builder.Services
         };
     });
 builder.Services.AddAuthorization(); // policies later if needed
+builder.Services.AddScoped<PositiveAmountFilter>();
 
 var app = builder.Build();
 
@@ -244,7 +246,6 @@ tx.MapGet("/{id:int}", async (WalletDbContext db, IMapper mapper, int id) =>
 });
 tx.MapPost("/", async (WalletDbContext db, IMapper mapper, TransactionCreateDto dto) =>
 {
-    if (dto.Amount <= 0) return Results.BadRequest("Amount must be positive");
     if (!await db.Accounts.AnyAsync(a => a.Id == dto.AccountId)) return Results.BadRequest("Account not found");
     if (!await db.Categories.AnyAsync(c => c.Id == dto.CategoryId)) return Results.BadRequest("Category not found");
 
@@ -258,7 +259,9 @@ tx.MapPost("/", async (WalletDbContext db, IMapper mapper, TransactionCreateDto 
                         .Include(t => t.Category)
                         .FirstAsync(t => t.Id == entity.Id);
     return Results.Created($"/transactions/{entity.Id}", mapper.Map<TransactionReadDto>(entity));
-});
+})
+.AddEndpointFilter<PositiveAmountFilter>();
+
 tx.MapPut("/{id:int}", async (WalletDbContext db, IMapper mapper, TransactionUpdateDto dto, int id) =>
 {
     var entity = await db.Transactions.FindAsync(id);
@@ -267,7 +270,9 @@ tx.MapPut("/{id:int}", async (WalletDbContext db, IMapper mapper, TransactionUpd
     mapper.Map(dto, entity);
     await db.SaveChangesAsync();
     return Results.NoContent();
-});
+})
+.AddEndpointFilter<PositiveAmountFilter>();
+
 tx.MapDelete("/{id:int}", async (WalletDbContext db, int id) =>
 {
     var transaction = await db.Transactions.FindAsync(id);
