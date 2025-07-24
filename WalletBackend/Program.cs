@@ -39,6 +39,7 @@ try
     //builder.Services.AddDbContext<WalletDbContext>(options => options.UseInMemoryDatabase("WalletDb"));
     //builder.Services.AddDbContext<WalletDbContext>(opt => opt.UseSqlite(connectionString));
     builder.Services.AddSqlite<WalletDbContext>(connectionString);
+    builder.Services.AddHealthChecks().AddDbContextCheck<WalletDbContext>("Database");
     builder.Services.AddCors(opt => opt.AddPolicy("dev",
         p => p.WithOrigins("http://localhost:4200")
             .AllowAnyHeader()
@@ -392,6 +393,8 @@ try
         return Results.Ok();
     });
 
+    app.MapHealthChecks("/health").AllowAnonymous();
+    
     app.Run();
 }
 catch (Exception ex)
