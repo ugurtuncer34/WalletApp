@@ -15,6 +15,8 @@ using System.IdentityModel.Tokens.Jwt;
 using WalletBackend.Filters;
 using Serilog;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using HealthChecks.UI.Client;
 
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(new ConfigurationBuilder()
@@ -39,7 +41,6 @@ try
     //builder.Services.AddDbContext<WalletDbContext>(options => options.UseInMemoryDatabase("WalletDb"));
     //builder.Services.AddDbContext<WalletDbContext>(opt => opt.UseSqlite(connectionString));
     builder.Services.AddSqlite<WalletDbContext>(connectionString);
-    builder.Services.AddHealthChecks().AddDbContextCheck<WalletDbContext>("Database");
     builder.Services.AddCors(opt => opt.AddPolicy("dev",
         p => p.WithOrigins("http://localhost:4200")
             .AllowAnyHeader()
@@ -89,6 +90,15 @@ try
         });
     builder.Services.AddAuthorization(); // policies later if needed
     builder.Services.AddScoped<PositiveAmountFilter>();
+    builder.Services.AddHealthChecks()
+        .AddDbContextCheck<WalletDbContext>(
+            name: "Database",
+            tags: ["ready"]);
+    builder.Services.AddHealthChecksUI(options =>
+        {
+            options.SetEvaluationTimeInSeconds(600); // poll every 10m
+            options.AddHealthCheckEndpoint("wallet-api", "/health");  // dash reads own endpoint
+        }).AddInMemoryStorage();
 
     var app = builder.Build();
 
@@ -393,8 +403,20 @@ try
         return Results.Ok();
     });
 
-    app.MapHealthChecks("/health").AllowAnonymous();
-    
+    app.MapGet("/alive", () => Results.Ok("I’m alive")).AllowAnonymous();
+
+    app.MapHealthChecks("/health", new HealthCheckOptions
+    {
+        Predicate = r => r.Tags.Contains("ready"),
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    }).AllowAnonymous();
+
+    app.MapHealthChecksUI(options =>
+    {
+        options.UIPath = "/health-ui";
+        options.ApiPath = "/health-json";
+    });
+
     app.Run();
 }
 catch (Exception ex)
