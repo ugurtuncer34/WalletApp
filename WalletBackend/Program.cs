@@ -17,6 +17,7 @@ using Serilog;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.RateLimiting;
 
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(new ConfigurationBuilder()
@@ -99,6 +100,18 @@ try
             options.SetEvaluationTimeInSeconds(600); // poll every 10m
             options.AddHealthCheckEndpoint("wallet-api", "/health");  // dash reads own endpoint
         }).AddInMemoryStorage();
+    builder.Services.AddRateLimiter(options =>
+        {
+            options.RejectionStatusCode = 429; // Too Many Requests
+
+            options.AddFixedWindowLimiter("fixed", limiter =>
+            {
+                limiter.PermitLimit = 100; // max 100 requests
+                limiter.Window = TimeSpan.FromMinutes(1);
+                limiter.QueueLimit = 0; // reject immediately
+                limiter.AutoReplenishment = true;
+            });
+        });
 
     var app = builder.Build();
 
@@ -135,6 +148,7 @@ try
     }
     app.UseSerilogRequestLogging(); // logs HTTP method, path, status, timing
     app.UseCors("dev");
+    app.UseRateLimiter();
     app.UseAuthentication();
     app.UseAuthorization();
     app.UseExceptionHandler(a =>
@@ -196,7 +210,7 @@ try
 
     app.MapGet("/", () => "go /swagger");
 
-    var tx = app.MapGroup("/transactions").WithTags("Transactions").RequireAuthorization();
+    var tx = app.MapGroup("/transactions").WithTags("Transactions").RequireAuthorization().RequireRateLimiting("fixed");
     var ax = app.MapGroup("/accounts").WithTags("Accounts").RequireAuthorization();
     var cx = app.MapGroup("/categories").WithTags("Categories").RequireAuthorization();
 
