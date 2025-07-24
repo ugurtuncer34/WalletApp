@@ -2,7 +2,7 @@ global using Microsoft.EntityFrameworkCore;
 global using WalletBackend.Data;
 global using WalletBackend.Models;
 global using WalletBackend.Dto;
-global using WalletBackend.Helpers;
+// global using WalletBackend.Helpers;
 global using WalletBackend.Mapping;
 using Microsoft.OpenApi.Models;
 using AutoMapper;
@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.RateLimiting;
-using System.Security.Cryptography;
 
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(new ConfigurationBuilder()
@@ -205,75 +204,7 @@ try
 
         var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-        // return Results.Ok(new AuthResponseDto(tokenString, expires));
-
-        var refreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-        var rtEntity = new RefreshToken
-        {
-            TokenHash = TokenUtils.Hash(refreshToken),
-            ExpiresAt = DateTime.UtcNow.AddDays(14),
-            UserId = user.Id
-        };
-        db.RefreshTokens.Add(rtEntity);
-        await db.SaveChangesAsync();
-
-        return Results.Ok(new
-        {
-            accessToken = tokenString,
-            refreshToken = refreshToken,// plain for client, hash in DB
-            expiresAt = expires
-        });
-    });
-    auth.MapPost("/refresh", async (WalletDbContext db, RefreshRequestDto dto) =>
-    {
-        var hash = TokenUtils.Hash(dto.RefreshToken);
-        var rt = await db.RefreshTokens
-                        .Include(r => r.User)
-                        .FirstOrDefaultAsync(r => r.TokenHash == hash);
-
-        if (rt is null || rt.IsRevoked || rt.ExpiresAt < DateTime.UtcNow)
-            return Results.Unauthorized();
-
-        // **Token rotation**: revoke the old one + issue a new refresh token
-        rt.IsRevoked = true;
-
-        var newRefresh = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-        var newRt = new RefreshToken
-        {
-            TokenHash = TokenUtils.Hash(newRefresh),
-            ExpiresAt = DateTime.UtcNow.AddDays(14),
-            UserId = rt.UserId
-        };
-        db.RefreshTokens.Add(newRt);
-        await db.SaveChangesAsync();
-
-        // new access JWT
-        var claims = new[] {
-        new Claim(JwtRegisteredClaimNames.Sub, rt.UserId.ToString()),
-        new Claim(JwtRegisteredClaimNames.Email, rt.User.Email),
-        new Claim(ClaimTypes.Role, rt.User.Role)
-        };
-        var key = new SymmetricSecurityKey(keyBytes);
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var expires = DateTime.UtcNow.AddMinutes(int.Parse(jwt["ExpiresMinutes"]!));
-        var jwtStr = new JwtSecurityTokenHandler().WriteToken(
-            new JwtSecurityToken(jwt["Issuer"], jwt["Audience"], claims, expires: expires, signingCredentials: creds));
-
-        return Results.Ok(new
-        {
-            accessToken = jwtStr,
-            refreshToken = newRefresh,
-            expiresAt = expires
-        });
-    });
-    auth.MapPost("/logout", async (WalletDbContext db, RefreshRequestDto dto) =>
-    {
-        var rt = await db.RefreshTokens.FirstOrDefaultAsync(r => r.TokenHash == TokenUtils.Hash(dto.RefreshToken));
-        if (rt is null) return Results.Ok(); // idempotent
-
-        rt.IsRevoked = true;
-        await db.SaveChangesAsync();
-        return Results.Ok();
+        return Results.Ok(new AuthResponseDto(tokenString, expires));
     });
     //////////// AUTH /////////////
 
