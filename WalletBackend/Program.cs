@@ -2,7 +2,6 @@ global using Microsoft.EntityFrameworkCore;
 global using WalletBackend.Data;
 global using WalletBackend.Models;
 global using WalletBackend.Dto;
-// global using WalletBackend.Helpers;
 global using WalletBackend.Mapping;
 using Microsoft.OpenApi.Models;
 using AutoMapper;
