@@ -1,0 +1,14 @@
+<div class="card mb-2 p-4 d-flex flex-row align-items-center justify-content-between">
+    <div *ngIf="!editing">
+        <h5 class="mb-0">{{ category.name }}</h5>
+    </div>
+    <div *ngIf="editing" class="d-flex gap-2">
+        <input type="text" [(ngModel)]="editCategory.name" class="form-control" />
+        <button class="add-btn" (click)="saveEdit()">Save</button>
+        <button class="icon-btn" (click)="cancelEdit()">✕</button>
+    </div>
+    <div *ngIf="!editing" class="d-flex gap-2">
+        <button class="icon-btn" (click)="startEdit()">✎</button>
+        <button class="icon-btn" (click)="deleteCategory()">✕</button>
+    </div>
+</div>

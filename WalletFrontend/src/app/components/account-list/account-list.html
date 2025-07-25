@@ -1,0 +1,25 @@
+<div class="card p-3">
+    <h2>Accounts</h2>
+    <ng-container *ngIf="accounts$ | async as accounts; else loading">
+        <app-account-item *ngFor="let a of accounts; trackBy: trackById" [account]="a" (updated)="reload()"
+            (removed)="reload()">
+        </app-account-item>
+
+        <div class="add-form p-3">
+            <!-- <h5>Add new account</h5> -->
+            <div class="row w-100">
+                <input type="text" [(ngModel)]="newAccount.name" placeholder="New account name" class="form-control">
+                <select [(ngModel)]="newAccount.currency" class="form-select" style="margin-left: .5rem;">
+                    <option [ngValue]="1">TRY</option>
+                    <option [ngValue]="2">EUR</option>
+                    <option [ngValue]="3">USD</option>
+                </select>
+                <button class="add-btn" style="max-width: 55px; max-height: 33px; margin-left: .5rem;"
+                    (click)="createAccount()">Add</button>
+            </div>
+        </div>
+    </ng-container>
+</div>
+<ng-template #loading>
+    <p>Loading...</p>
+</ng-template>

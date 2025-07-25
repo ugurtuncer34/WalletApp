@@ -1,0 +1,20 @@
+<div class="card mt-3 p-3">
+    <h2>Categories</h2>
+    <ng-container *ngIf="categories$ | async as categories; else loading">
+        <app-category-item *ngFor="let c of categories; trackBy: trackById" [category]="c" (updated)="reload()"
+            (removed)="reload()">
+        </app-category-item>
+
+        <div class="add-form mt-3 p-3">
+            <!-- <h5>Add new category</h5> -->
+            <div class="row w-100">
+                <input type="text" [(ngModel)]="newCategory.name" placeholder="New category name" class="form-control mb-2">
+                <button class="add-btn" (click)="createCategory()"
+                    style="max-width: 55px; max-height: 33px; margin-left: .5rem;">Add</button>
+            </div>
+        </div>
+    </ng-container>
+</div>
+<ng-template #loading>
+    <p>Loading...</p>
+</ng-template>

@@ -1,0 +1,16 @@
+.balance-positive {
+  color: #28a745;      /* Green */
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.balance-negative {
+  color: #dc3545;      /* Red */
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.arrow {
+  margin-left: 0.2rem;
+  font-size: 1.1rem;
+}
