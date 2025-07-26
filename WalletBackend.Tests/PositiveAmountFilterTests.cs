@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Mvc;                 // BadRequestObjectResult
 using Microsoft.AspNetCore.Routing;            // Endpoint
 using Microsoft.AspNetCore.Http.Features;      // IEndpointFeature
 
-namespace WalletBackend.UnitTests;
+namespace WalletBackend.Tests;
 
 public class PositiveAmountFilterTests
 {
