@@ -20,6 +20,9 @@
             <section class="col-lg-8 col-12 px-3">
                 <app-transaction-list [accounts$]="accounts$" [categories$]="categories$"
                     (updated)="reload()"></app-transaction-list>
+                <section class="mt-4">
+                    <app-category-expense-chart></app-category-expense-chart>
+                </section>
             </section>
 
             <section class="col-lg-4 col-12 py-5">

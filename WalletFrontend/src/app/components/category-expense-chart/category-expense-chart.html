@@ -1,0 +1,12 @@
+<h3 class="mb-2">Expenses by Category</h3>
+
+<label class="mb-2 d-inline-block">
+    Month:
+    <input type="month" [ngModel]="month()" (ngModelChange)="month.set($event); onMonthChange()">
+</label>
+
+<!-- Pie chart -->
+<div class="chart-wrapper">
+    <canvas baseChart [data]="chartData()" [type]="'pie'">
+    </canvas>
+</div>

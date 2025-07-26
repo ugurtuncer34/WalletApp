@@ -13,10 +13,11 @@ import { AccountList } from '../account-list/account-list';
 import { CategoryList } from '../category-list/category-list';
 import { TransactionList } from '../transaction-list/transaction-list';
 import { ReloadService } from '../../services/reload-service';
+import { CategoryExpenseChart } from '../category-expense-chart/category-expense-chart';
 
 @Component({
   selector: 'app-home-component',
-  imports: [CommonModule, FormsModule, AccountList, CategoryList, TransactionList],
+  imports: [CommonModule, FormsModule, AccountList, CategoryList, TransactionList, CategoryExpenseChart],
   templateUrl: './home-component.html',
   styleUrl: './home-component.css'
 })
