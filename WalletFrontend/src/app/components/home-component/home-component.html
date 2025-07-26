@@ -18,12 +18,13 @@
     <div class="container-fluid py-2 px-0">
         <div class="row gx-3 gy-3">
             <section class="col-lg-8 col-12 px-3">
-                <app-transaction-list [accounts$]="accounts$" [categories$]="categories$"></app-transaction-list>
+                <app-transaction-list [accounts$]="accounts$" [categories$]="categories$"
+                    (updated)="reload()"></app-transaction-list>
             </section>
 
             <section class="col-lg-4 col-12 py-5">
-                <app-account-list (updated)="reloadDropdowns()"></app-account-list>
-                <app-category-list (updated)="reloadDropdowns()"></app-category-list>
+                <app-account-list (updated)="reload()"></app-account-list>
+                <app-category-list (updated)="reload()"></app-category-list>
             </section>
         </div>
     </div>

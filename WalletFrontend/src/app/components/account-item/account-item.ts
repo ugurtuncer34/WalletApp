@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, inject, Input, Output } from '@angular/core';
 import { AccountReadDto } from '../../models/account-read-dto';
 import { AccountService } from '../../services/account-service';
 import { Observable } from 'rxjs';
 import { AccountUpdateDto } from '../../models/account-update-dto';
 import { FormsModule } from '@angular/forms';
+import { ReloadService } from '../../services/reload-service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-account-item',
@@ -20,11 +22,21 @@ export class AccountItem {
   private acService = inject(AccountService);
   balance$!: Observable<number>;
 
+  private reloadSvc = inject(ReloadService);
+  private destroyRef = inject(DestroyRef);
+
   isEditing = false;
   editModel: AccountUpdateDto = { name: '', currency: 1 };
 
   ngOnInit() {
     this.balance$ = this.acService.balance(this.account.id);
+    this.reloadSvc.sig$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.reload());
+  }
+
+  reload() {
+    this.balance$ = this.acService.balance(this.account.id, true);
   }
 
   startEdit() {

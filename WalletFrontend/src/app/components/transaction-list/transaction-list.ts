@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, inject, Input } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, inject, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { AccountReadDto } from '../../models/account-read-dto';
@@ -20,6 +20,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 export class TransactionList {
   @Input() accounts$: Observable<AccountReadDto[]> | null = null;
   @Input() categories$: Observable<CategoryReadDto[]> | null = null;
+  @Output() updated = new EventEmitter<void>();
   readonly Math = Math;
 
   // services
@@ -74,6 +75,7 @@ export class TransactionList {
 
   reload() {
     this.paged$ = this.txService.list(this.currentQuery());
+    // this.updated.emit(); // causing infinite loop
   }
 
   /* ------------- paging / sorting ------------- */
@@ -106,17 +108,26 @@ export class TransactionList {
   saveEdit(id: number) {
     if (!this.editTxn) return;
     this.txService.update(id, this.editTxn).subscribe(() => {
-      this.cancelEdit(); this.reload();
+      // this.acService.invalidateBalance(this.editTxn!.accountId);
+      this.cancelEdit();
+      this.reload();
+      this.updated.emit();
     });
   }
   txDelete(id: number) {
     if (!confirm('Delete this transaction?')) return;
-    this.txService.delete(id).subscribe(() => this.reload());
+    this.txService.delete(id).subscribe(() => {
+      // this.acService.invalidateBalance(deletedTxnAccountId);
+      this.reload();
+      this.updated.emit();
+    });
   }
   txSave() {
     this.txService.create(this.newTransaction).subscribe(() => {
+      // this.acService.invalidateBalance(this.newTransaction.accountId);
       this.newTransaction = { ...this.newTransaction, amount: 0 };
       this.page = 1; this.reload();
+      this.updated.emit();
     });
   }
 

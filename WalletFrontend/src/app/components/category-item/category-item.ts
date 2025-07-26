@@ -14,7 +14,6 @@ import { FormsModule } from '@angular/forms';
 export class CategoryItem {
   @Input() category!: CategoryReadDto;
   @Output() updated = new EventEmitter<void>();
-  @Output() removed = new EventEmitter<void>();
 
   editing = false;
   editCategory: CategoryUpdateDto = { name: '' };
@@ -42,7 +41,7 @@ export class CategoryItem {
   deleteCategory() {
     if (!confirm('Delete this category?')) return;
     this.ctService.delete(this.category.id).subscribe({
-      next: () => this.removed.emit() // tell parent to reload
+      next: () => this.updated.emit() // tell parent to reload
     });
   }
 }

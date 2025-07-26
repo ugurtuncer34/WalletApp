@@ -37,11 +37,18 @@ export class AccountService {
   // balance cache in order to pipe accounts
   private balanceCache = new Map<number, Observable<number>>(); //remember observables per account id
 
-  balance(id: number): Observable<number> {
+  invalidateBalance(id: number) {
+    this.balanceCache.delete(id); // forget old value
+  }
+
+  /** forceRefresh = true -> always hit server  */
+  balance(id: number, forceRefresh = false): Observable<number> {
+    if (forceRefresh) this.balanceCache.delete(id);
+
     if (!this.balanceCache.has(id)) {
       const obs = this.http.get<BalanceDto>(`${this.api}/${id}/balance`).pipe(
         map(r => r.balance),
-        shareReplay(1) //make each observable “sticky” so multiple subscribers don’t re-call HTTP
+        shareReplay(1)
       );
       this.balanceCache.set(id, obs);
     }

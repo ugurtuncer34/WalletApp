@@ -2,7 +2,7 @@
     <h2>Accounts</h2>
     <ng-container *ngIf="accounts$ | async as accounts; else loading">
         <app-account-item *ngFor="let a of accounts; trackBy: trackById" [account]="a" (updated)="reload()"
-            (removed)="reload()">
+            (removed)="onAccountRemoved()">
         </app-account-item>
 
         <div class="add-form p-3">
