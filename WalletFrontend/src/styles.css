@@ -35,71 +35,91 @@ body {
   font-family: system-ui, sans-serif;
 }
 
-/* table layout */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-  background: #fff;
-  border: 1px solid #ddd;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
-}
-
-/* header row */
-thead {
-  background-color: #f5f5f5;
-}
-
-thead th {
-  padding: .75rem;
-  text-align: left;
-  font-weight: 600;
-  border-bottom: 2px solid #ddd;
-}
-
-/* zebra striping for readability */
-tbody tr:nth-child(even) {
-  background-color: #fafafa;
-}
-
-/* body cells */
-tbody td {
-  padding: .65rem;
-  border-bottom: 1px solid #eee;
-}
-
-/* subtle hover highlight */
-tbody tr:hover {
-  background-color: #f1f7ff;
-}
-
-/* scroll container */
+/* Table wrapper */
 .table-wrap {
   max-height: 520px;
   overflow: auto;
-  /* optional: border-radius, border, etc. */
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
 }
 
-/* keep your existing table styles … */
-
-/* sticky header */
-.table-wrap thead th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  /* above body rows */
-  background: #f5f5f5;
-  /* must have background or you'll see rows under */
+/* Table layout */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  border-radius: 8px;
 }
 
-/* sticky footer */
-.table-wrap tfoot td {
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
-  background: #f5f5f5;
-  /* match header or white */
-  border-top: 2px solid #ddd;
+/* Header row */
+thead {
+  background-color: #f9f9f9;
+}
+
+thead th {
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 1px solid #ddd;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+thead th:hover {
+  background-color: #f1f1f1;
+}
+
+/* Body rows */
+tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #fcfcfc;
+}
+
+tbody tr:hover {
+  background-color: #f5f9ff;
+}
+
+/* Body cells */
+tbody td {
+  padding: 0.65rem;
+  border-bottom: 1px solid #eee;
+  color: #444;
+}
+
+/* Last row - remove border */
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Rounded corners */
+thead th:first-child {
+  border-top-left-radius: 8px;
+}
+
+thead th:last-child {
+  border-top-right-radius: 8px;
+}
+
+tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 8px;
+}
+
+tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 8px;
+}
+
+/* Highlight numeric columns */
+.amount {
+  font-weight: bold;
+  color: #222;
+  /* text-align: right; */
+  font-variant-numeric: tabular-nums;
 }
 
 
