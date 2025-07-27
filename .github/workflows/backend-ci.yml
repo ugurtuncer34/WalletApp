@@ -21,11 +21,14 @@ jobs:
           dotnet-version: '9.0.x'
 
       # 3 Restore + build + test
-      - name: Restore & Build
-        run: dotnet build WalletBackend/WalletBackend.csproj --no-restore
+      - name: Restore
+        run: dotnet restore WalletBackend/WalletBackend.csproj
 
-      - name: Run Unit Tests
-        run: dotnet test WalletBackend.Tests/WalletBackend.Tests.csproj --no-restore --verbosity normal
+      - name: Build
+        run: dotnet build WalletBackend/WalletBackend.csproj --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test WalletBackend.Tests/WalletBackend.Tests.csproj --configuration Release --no-restore --verbosity normal
 
       # 4 Build container image
       - name: Docker Build
