@@ -1,0 +1,25 @@
+# backend build artifacts
+WalletBackend/bin/
+WalletBackend/obj/
+
+# test artifacts
+WalletBackend.Tests/bin/
+WalletBackend.Tests/obj/
+
+# frontend (we’re not building it here)
+WalletFrontend/
+
+# VS Code, Rider, etc
+.vscode/
+.idea/
+
+.DS_Store
+**/.DS_Store
+
+# Ignore git metadata
+.git
+.gitignore
+
+# Logs, temp files
+*.log
+tmp/

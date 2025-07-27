@@ -17,65 +17,65 @@ public static class TransactionEndpoints
             string? sortBy = "date",
             string? sortDir = "desc"
         ) =>
-    {
-        // base query includes navs so AutoMapper can read names
-        IQueryable<Transaction> query = db.Transactions
-                        .Include(t => t.Account)
-                        .Include(t => t.Category)
-                        .AsNoTracking();
-
-        if (!string.IsNullOrWhiteSpace(month) &&
-            DateTime.TryParseExact(month, "yyyy-MM",
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.None,
-                out var monthStart))
         {
-            var monthEnd = monthStart.AddMonths(1);
-            query = query.Where(t => t.Date >= monthStart && t.Date < monthEnd);
-        }
+            // base query includes navs so AutoMapper can read names
+            IQueryable<Transaction> query = db.Transactions
+                            .Include(t => t.Account)
+                            .Include(t => t.Category)
+                            .AsNoTracking();
 
-        //if(accountId.HasValue && accountId.Value > 0)
-        if (accountId is int accId && accId > 0)
-        {
-            query = query.Where(t => t.AccountId == accId);
-        }
-        if (categoryId is int ctgId && ctgId > 0)
-        {
-            query = query.Where(t => t.CategoryId == ctgId);
-        }
+            if (!string.IsNullOrWhiteSpace(month) &&
+                DateTime.TryParseExact(month, "yyyy-MM",
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None,
+                    out var monthStart))
+            {
+                var monthEnd = monthStart.AddMonths(1);
+                query = query.Where(t => t.Date >= monthStart && t.Date < monthEnd);
+            }
 
-        // total before paging
-        var total = await query.CountAsync();
+            //if(accountId.HasValue && accountId.Value > 0)
+            if (accountId is int accId && accId > 0)
+            {
+                query = query.Where(t => t.AccountId == accId);
+            }
+            if (categoryId is int ctgId && ctgId > 0)
+            {
+                query = query.Where(t => t.CategoryId == ctgId);
+            }
 
-        // sorting
-        query = (sortBy?.ToLower(), sortDir?.ToLower()) switch
-        {
-            ("amount", "asc") => query.OrderBy(t => (double)t.Amount), // casting for sqlite
-            ("amount", _) => query.OrderByDescending(t => (double)t.Amount),
+            // total before paging
+            var total = await query.CountAsync();
 
-            ("direction", "asc") => query.OrderBy(t => t.Direction),
-            ("direction", _) => query.OrderByDescending(t => t.Direction),
+            // sorting
+            query = (sortBy?.ToLower(), sortDir?.ToLower()) switch
+            {
+                ("amount", "asc") => query.OrderBy(t => (double)t.Amount), // casting for sqlite
+                ("amount", _) => query.OrderByDescending(t => (double)t.Amount),
 
-            // default: date
-            (_, "asc") => query.OrderBy(t => t.Date),
-            _ => query.OrderByDescending(t => t.Date)
-        };
+                ("direction", "asc") => query.OrderBy(t => t.Direction),
+                ("direction", _) => query.OrderByDescending(t => t.Direction),
 
-        // paging
-        var skip = page <= 0 ? 0 : (page - 1) * pageSize;
-        var items = await query.Skip(skip).Take(pageSize).ToListAsync();
+                // default: date
+                (_, "asc") => query.OrderBy(t => t.Date),
+                _ => query.OrderByDescending(t => t.Date)
+            };
 
-        var dtoList = mapper.Map<IEnumerable<TransactionReadDto>>(items);
+            // paging
+            var skip = page <= 0 ? 0 : (page - 1) * pageSize;
+            var items = await query.Skip(skip).Take(pageSize).ToListAsync();
 
-        return Results.Ok(new PagedResult<TransactionReadDto>(
-            Items: dtoList.ToList(),
-            TotalCount: total,
-            Page: page,
-            PageSize: pageSize
-        ));
-    })
-    .WithSummary("Get all transactions or only those within the given month (yyyy-MM)")
-    .WithName("GetTransactions");
+            var dtoList = mapper.Map<IEnumerable<TransactionReadDto>>(items);
+
+            return Results.Ok(new PagedResult<TransactionReadDto>(
+                Items: dtoList.ToList(),
+                TotalCount: total,
+                Page: page,
+                PageSize: pageSize
+            ));
+        })
+        .WithSummary("Get all transactions or only those within the given month (yyyy-MM)")
+        .WithName("GetTransactions");
 
         tx.MapGet("/{id:int}", async (WalletDbContext db, IMapper mapper, int id) =>
         {

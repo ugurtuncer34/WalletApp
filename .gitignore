@@ -576,3 +576,7 @@ yarn-error.log*
 WalletFrontend/dist/
 WalletFrontend/.angular/
 WalletFrontend/coverage/
+
+# Docker-related extras (if any accidentally slip in)
+*.tar
+*.log
