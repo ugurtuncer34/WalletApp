@@ -1,0 +1,41 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1 Checkout
+      - uses: actions/checkout@v3
+
+      # 2 Install .NET 9 SDK
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      # 3 Restore + build + test
+      - name: Restore & Build
+        run: dotnet build WalletBackend/WalletBackend.csproj --no-restore
+
+      - name: Run Unit Tests
+        run: dotnet test WalletBackend.Tests/WalletBackend.Tests.csproj --no-restore --verbosity normal
+
+      # 4 Build container image
+      - name: Docker Build
+        run: |
+          docker build -t ghcr.io/${{ github.repository }}:${{ github.sha }} .
+      
+      # 5 (Opt.) push to GitHub Container Registry
+      # - uses: docker/login-action@v2
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ github.actor }}
+      #     password: ${{ secrets.GITHUB_TOKEN }}
+      # - run: docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
