@@ -40,7 +40,16 @@ try
     builder.Services.AddEndpointsApiExplorer();
     //builder.Services.AddDbContext<WalletDbContext>(options => options.UseInMemoryDatabase("WalletDb"));
     //builder.Services.AddDbContext<WalletDbContext>(opt => opt.UseSqlite(connectionString));
-    builder.Services.AddSqlite<WalletDbContext>(connectionString);
+    // builder.Services.AddSqlite<WalletDbContext>(connectionString);
+    if (builder.Environment.IsEnvironment("Testing"))
+    {
+        builder.Services.AddDbContext<WalletDbContext>(
+            o => o.UseInMemoryDatabase("WalletTestsDb"));
+    }
+    else
+    {
+        builder.Services.AddSqlite<WalletDbContext>(connectionString);
+    }
     builder.Services.AddCors(opt => opt.AddPolicy("dev",
         p => p.WithOrigins("http://localhost:4200")
             .AllowAnyHeader()
@@ -104,7 +113,12 @@ try
             });
         });
 
-    var app = builder.Build().SeedData();
+    var app = builder.Build();
+
+    if (!app.Environment.IsEnvironment("Testing"))
+    {
+        app.SeedData();
+    }
 
     if (app.Environment.IsDevelopment())
     {
@@ -138,7 +152,15 @@ try
     app.MapReportEndpoints();
     app.MapHealthEndpoints();
 
-    app.Run();
+    if (app.Environment.IsEnvironment("Testing"))
+    {
+        // start the pipeline without blocking so tests can hit it
+        _ = app.StartAsync();          // ← non-blocking
+    }
+    else
+    {
+        app.Run();                 // normal production / dev
+    }
 }
 catch (Exception ex)
 {
@@ -148,3 +170,4 @@ finally
 {
     Log.CloseAndFlush();
 }
+public partial class Program { }

@@ -7,32 +7,35 @@ public static class WebApplicationExtensions
         using var scope = app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<WalletDbContext>();
 
-        db.Database.Migrate();
+        if (db.Database.IsRelational())
+            db.Database.Migrate();
+        else
+            db.Database.EnsureCreated();
 
-            if (!db.Accounts.Any())
+        if (!db.Accounts.Any())
+        {
+            db.Accounts.Add(new Account { Name = "Cash", Currency = Currency.TRY });
+            db.SaveChanges();
+        }
+
+        if (!db.Categories.Any())
+        {
+            db.Categories.Add(new Category { Name = "Fun" });
+            db.SaveChanges();
+        }
+
+        if (!db.Users.Any())
+        {
+            var hash = BCrypt.Net.BCrypt.HashPassword("P@ssw0rd!");
+            db.Users.Add(new User
             {
-                db.Accounts.Add(new Account { Name = "Cash", Currency = Currency.TRY });
-                db.SaveChanges();
-            }
+                Email = "test@wallet.dev",
+                PasswordHash = hash,
+                Role = "User"
+            });
+            db.SaveChanges();
+        }
 
-            if (!db.Categories.Any())
-            {
-                db.Categories.Add(new Category { Name = "Fun" });
-                db.SaveChanges();
-            }
-
-            if (!db.Users.Any())
-            {
-                var hash = BCrypt.Net.BCrypt.HashPassword("P@ssw0rd!");
-                db.Users.Add(new User
-                {
-                    Email        = "test@wallet.dev",
-                    PasswordHash = hash,
-                    Role         = "User"
-                });
-                db.SaveChanges();
-            }
-
-            return app;
+        return app;
     }
 }

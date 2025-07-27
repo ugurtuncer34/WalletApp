@@ -1,5 +1,4 @@
-﻿// tests/WalletBackend.UnitTests/PositiveAmountFilterTests.cs
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Xunit;
