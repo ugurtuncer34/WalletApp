@@ -33,7 +33,7 @@ jobs:
       # 4 Build container image
       - name: Docker Build
         run: |
-          docker build -t ghcr.io/${{ github.repository }}:${{ github.sha }} .
+          docker build -t ghcr.io/${{ github.repository_owner }}/walletapp:${{ github.sha }} .
       
       # 5 (Opt.) push to GitHub Container Registry
       # - uses: docker/login-action@v2
