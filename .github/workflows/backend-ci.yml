@@ -3,8 +3,16 @@ name: Backend CI
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - 'WalletFrontend/**'
+      - '*.md'
+      - 'docs/**'
   pull_request:
     branches: [ main ]
+    paths-ignore:
+      - 'WalletFrontend/**'
+      - '*.md'
+      - 'docs/**'
 
 jobs:
   build-test:
