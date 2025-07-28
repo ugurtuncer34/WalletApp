@@ -6,32 +6,41 @@
     </form>
 </div>
 <ng-template #loggedInBox>
-    <div class="login-info">
-        Logged in as {{ loginDto.email }} <!-- or decode token later -->
-        <button class="icon-btn" (click)="doLogout()">Logout</button>
+    <div class="login-info" *ngIf="auth.isLoggedIn$ | async">
+        Logged in as <span style="color: #0277bd;">{{ auth.userEmail$ | async }}</span> |
+        <button class="icon-btn2" (click)="doLogout()">Logout</button>
     </div>
 </ng-template>
 
 <!-- Auth Switch -->
 
 <div *ngIf="auth.token$ | async; else pleaseLogin">
-    <div class="container-fluid py-2 px-0">
-        <div class="row gx-3 gy-3">
-            <section class="col-lg-8 col-12 px-3">
-                <app-transaction-list [accounts$]="accounts$" [categories$]="categories$"
-                    (updated)="reload()"></app-transaction-list>
-                <section class="mt-4">
-                    <app-category-expense-chart></app-category-expense-chart>
-                </section>
-            </section>
-
-            <section class="col-lg-4 col-12 py-5">
-                <app-account-list (updated)="reload()"></app-account-list>
-                <app-category-list (updated)="reload()"></app-category-list>
-            </section>
-        </div>
+    <div class="dashboard">
+        <section class="dashboard-left">
+            <app-transaction-list [accounts$]="accounts$" [categories$]="categories$"
+                (updated)="reload()"></app-transaction-list>
+        </section>
+        <aside class="dashboard-right">
+            <div class="chart-card">
+                <app-category-expense-chart></app-category-expense-chart>
+            </div>
+            <app-account-list (updated)="reload()"></app-account-list>
+            <!-- <app-category-list (updated)="reload()"></app-category-list> -->
+             <button class="modal-btn" (click)="openCategories()">
+                Categories
+            </button>
+        </aside>
     </div>
 </div>
 <ng-template #pleaseLogin>
     <p style="text-align: center;">Please log in to view data.</p>
 </ng-template>
+
+<div class="modal-overlay" [class.open]="showCategories" (click)="closeCategories()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        <button class="close-btn" (click)="closeCategories()">×</button>
+
+        <app-category-list (updated)="reload()">
+        </app-category-list>
+    </div>
+</div>

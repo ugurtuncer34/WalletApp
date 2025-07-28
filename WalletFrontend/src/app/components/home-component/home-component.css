@@ -6,3 +6,141 @@
   padding: .5rem;
   font-family: system-ui, sans-serif;
 }
+
+/* home.component.css */
+.dashboard {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  padding: .5rem;
+  padding-top: 0;
+  height: 100%;
+}
+
+/* Left: take ~2/3 of the width */
+.dashboard-left {
+  flex: 2;
+  height: 100vh;
+}
+
+.dashboard-left > .filters,
+.dashboard-left > .pager,
+.dashboard-left > .tx-form {
+  flex: none;
+}
+
+/* Right: take ~1/3, stack cards vertically */
+.dashboard-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-top: 3.25rem;
+}
+
+/* Card wrapper for chart (and other cards) */
+.card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Specific tweaks for the chart card */
+.chart-card {
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+
+/* Inside your chart component you can expand to 100% */
+.chart-wrapper {
+  width: 100% !important;
+  max-width: none;
+  margin: 0;
+}
+
+@media (max-width: 800px) {
+  .dashboard {
+    flex-direction: column;
+  }
+
+  .dashboard-left,
+  .dashboard-right {
+    flex: unset;
+  }
+}
+
+/* overlay default (hidden) */
+.modal-overlay {
+  position: fixed;
+  top:0; left:0; right:0; bottom:0;
+  background: rgba(0,0,0,0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 250ms ease, visibility 250ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index:1000;
+  pointer-events: none; /* don’t block clicks when hidden */
+}
+
+/* content default (small + transparent) */
+.modal-content {
+  background:#fff;
+  border-radius:8px;
+  padding:1rem;
+  max-width:600px;
+  max-height:90vh;
+  overflow-y:auto;
+  box-shadow:0 6px 18px rgba(0,0,0,0.2);
+  
+  transform: scale(0.8);
+  opacity: 0;
+  transition: transform 250ms ease, opacity 250ms ease;
+}
+
+/* when open */
+.modal-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.modal-overlay.open .modal-content {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* little X button in the corner */
+.close-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: #555;
+}
+.close-btn:hover {
+  color: #000;
+}
+
+/* your open-modal button */
+.modal-btn {
+  /* padding: 0.5rem 1rem; */
+  padding: .25rem;
+  border: none;
+  border-radius: 6px;
+  background: #1976D2;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+  max-width: 100px;
+}
+.modal-btn:hover {
+  background: #1565C0;
+}

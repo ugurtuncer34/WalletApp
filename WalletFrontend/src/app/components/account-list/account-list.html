@@ -1,12 +1,10 @@
-<div class="card p-3">
-    <h2>Accounts</h2>
+<div class="acc-card">
     <ng-container *ngIf="accounts$ | async as accounts; else loading">
         <app-account-item *ngFor="let a of accounts; trackBy: trackById" [account]="a" (updated)="reload()"
             (removed)="onAccountRemoved()">
         </app-account-item>
 
         <div class="add-form p-3">
-            <!-- <h5>Add new account</h5> -->
             <div class="row w-100">
                 <input type="text" [(ngModel)]="newAccount.name" placeholder="New account name" class="form-control">
                 <select [(ngModel)]="newAccount.currency" class="form-select" style="margin-left: .5rem;">

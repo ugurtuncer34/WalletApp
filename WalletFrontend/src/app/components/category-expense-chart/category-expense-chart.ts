@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { NgChartsModule } from 'ng2-charts';
 import { CategoryReportService } from '../../services/category-report-service';
-import { ChartConfiguration } from 'chart.js';
+import { ChartConfiguration, ChartOptions } from 'chart.js';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -17,6 +17,24 @@ export class CategoryExpenseChart {
   /** two reactive signals so the chart updates if month changes */
   month = signal<string>(new Date().toISOString().slice(0, 7)); // yyyy-MM
   chartData = signal<ChartConfiguration<'pie'>['data']>({ labels: [], datasets: [] });
+
+  public chartOptions: ChartOptions<'pie'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',    // ← move legend under the chart
+        labels: {
+          usePointStyle: true, // show little circles instead of boxes
+          padding: 16,
+          boxWidth: 12
+        }
+      },
+      tooltip: {
+        padding: 8
+      }
+    }
+  };
 
   ngOnInit() { this.load(); }
 

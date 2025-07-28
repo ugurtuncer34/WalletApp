@@ -1,5 +1,5 @@
 export interface TransactionCreateDto {
-    date: Date,
+    date: string,
     amount: number,
     direction: number,
     accountId: number,

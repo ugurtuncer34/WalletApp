@@ -50,7 +50,7 @@ export class HomeComponent {
   // dropdown data
   accounts$: Observable<AccountReadDto[]> = this.acService.list();
   categories$: Observable<CategoryReadDto[]> = this.ctService.list();
-  
+
   reloadDropdowns() {
     this.accounts$ = this.acService.list();
     this.categories$ = this.ctService.list();
@@ -58,5 +58,20 @@ export class HomeComponent {
   reload() {
     this.reloadDropdowns();
     this.reloadSvc.trigger();   // tells every subscriber to refresh itself
+  }
+
+  showCategories = false;
+
+  openCategories() {
+    this.showCategories = true;
+  }
+
+  closeCategories() {
+    this.showCategories = false;
+  }
+
+  onCategoryUpdated() {
+    this.closeCategories();
+    this.reload(); 
   }
 }

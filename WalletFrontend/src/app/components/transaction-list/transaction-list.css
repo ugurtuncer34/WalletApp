@@ -1,0 +1,28 @@
+h2 {
+  /* use our new font */
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  
+  /* a calm, mid-blue color */
+  color: #1976D2;
+  
+  /* subtle underline as an accent */
+  display: inline-block;
+  padding-bottom: 0.25rem;
+  border-bottom: 2px solid #BBDEFB;
+  
+  /* a tiny bit of letter-spacing for readability */
+  letter-spacing: 0.5px;
+  margin-bottom: 1rem;
+}
+
+/* gentle hover effect */
+h2:hover {
+  color: #1565C0;
+  border-color: #90CAF9;
+}
+
+.use-font {
+    font-family: 'Nunito', sans-serif;
+}

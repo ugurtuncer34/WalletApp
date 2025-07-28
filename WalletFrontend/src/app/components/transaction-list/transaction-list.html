@@ -1,125 +1,156 @@
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600&display=swap" rel="stylesheet">
 <h2>Transactions</h2>
+<div class="use-font">
+    <!-- FILTER BAR -->
+    <div class="filters">
+        <label>Month:
+            <input type="month" [(ngModel)]="selectedMonth" name="month">
+        </label>
 
-<!-- Filter bar -->
-<div class="filters">
-    <label>Month:
-        <input type="month" [(ngModel)]="selectedMonth" (ngModelChange)="reload()">
-    </label>
+        <label>Account:
+            <select [(ngModel)]="selectedAccountId" name="account">
+                <option [ngValue]="null">All</option>
+                <option *ngFor="let a of accounts$ | async" [ngValue]="a.id">{{ a.name }}</option>
+            </select>
+        </label>
 
-    <label>Account:
-        <select [(ngModel)]="selectedAccountId" (change)="reload()">
-            <option [ngValue]="null">All</option>
+        <label>Category:
+            <select [(ngModel)]="selectedCategoryId" name="category">
+                <option [ngValue]="null">All</option>
+                <option *ngFor="let c of categories$ | async" [ngValue]="c.id">{{ c.name }}</option>
+            </select>
+        </label>
+
+        <!-- Summary & toolbar -->
+        <div class="filters-summary">
+            <button type="button" (click)="resetFilters()">Reset</button>
+            <button type="button" (click)="exportCsv()">Export</button>
+            <!-- <span>Total txns: {{ totalTransactions }}</span>
+        <span>Balance: {{ totalAmount | number:'1.2-2' }}</span> -->
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div *ngIf="paged$ | async as pageData; else loading">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th (click)="sort('date')">Date</th>
+                        <th (click)="sort('accountName')">Account</th>
+                        <th (click)="sort('categoryName')">Category</th>
+                        <th (click)="sort('direction')">Direction</th>
+                        <th (click)="sort('amount')">Amount</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr *ngFor="let t of pageData.items; trackBy: trackById">
+                        <!-- Date -->
+                        <td class="col-date" *ngIf="editingId !== t.id">
+                            <span class="date-badge">{{ t.date | date:'yyyy-MM-dd' }}</span>
+                        </td>
+                        <td *ngIf="editingId === t.id">
+                            <input type="date" [(ngModel)]="editTxn!.date">
+                        </td>
+
+                        <!-- Account -->
+                        <td class="col-account" *ngIf="editingId !== t.id">
+                            <span class="account-icon">💰</span>
+                            <span class="account-label">{{ t.accountName }}</span>
+                        </td>
+                        <td *ngIf="editingId === t.id">
+                            <select [(ngModel)]="editTxn!.accountId">
+                                <option *ngFor="let a of (accounts$ | async) || []" [ngValue]="a.id">{{ a.name }}
+                                </option>
+                            </select>
+                        </td>
+
+                        <!-- Category -->
+                        <td class="col-category" *ngIf="editingId !== t.id">
+                            <span class="category-pill">{{ t.categoryName }}</span>
+                        </td>
+                        <td *ngIf="editingId === t.id">
+                            <select [(ngModel)]="editTxn!.categoryId">
+                                <option *ngFor="let c of (categories$ | async) || []" [ngValue]="c.id">{{ c.name }}
+                                </option>
+                            </select>
+                        </td>
+
+                        <!-- Direction -->
+                        <td class="direction-{{ t.direction | lowercase }}" *ngIf="editingId !== t.id">{{ t.direction }}
+                        </td>
+                        <td *ngIf="editingId === t.id">
+                            <select [(ngModel)]="editTxn!.direction">
+                                <option [ngValue]="1">Income</option>
+                                <option [ngValue]="2">Expense</option>
+                            </select>
+                        </td>
+
+                        <!-- Amount -->
+                        <td class="amount" *ngIf="editingId !== t.id">{{ t.amount | number:'1.2-2' }}</td>
+                        <td class="amount" *ngIf="editingId === t.id">
+                            <input type="number" min="0.01" step="0.01" [(ngModel)]="editTxn!.amount">
+                        </td>
+
+                        <!-- Actions -->
+                        <td>
+                            <div class="actions">
+                                <button class="icon-btn edit" *ngIf="editingId !== t.id" (click)="startEdit(t)"
+                                    aria-label="Edit">✎</button>
+                                <button class="icon-btn delete" *ngIf="editingId !== t.id" (click)="txDelete(t.id)"
+                                    aria-label="Delete">✕</button>
+
+                                <button class="save-btn" *ngIf="editingId === t.id"
+                                    (click)="saveEdit(t.id)">Save</button>
+                                <button class="icon-btn cancel" *ngIf="editingId === t.id" (click)="cancelEdit()"
+                                    aria-label="Cancel">✕</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PAGER -->
+        <div class="pager">
+            <!-- prev / page / next -->
+            <button (click)="goTo(page-1)" [disabled]="!hasPrev">«</button>
+            <span>Page {{ page }} / {{ totalPages }}</span>
+            <button (click)="goTo(page+1)" [disabled]="!hasNext">»</button>
+
+            <!-- page size selector -->
+            <select [(ngModel)]="pageSize" (ngModelChange)="changePageSize($event)">
+                <option *ngFor="let s of [10,20,50,100]" [value]="s">{{ s }}</option>
+            </select>
+
+            <!-- record range -->
+            <span class="pager-info">
+                Showing {{ firstItem }}–{{ lastItem }} of {{ totalTransactions }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Add-transaction form -->
+    <form class="tx-form" (ngSubmit)="txSave()">
+        <input type="date" [(ngModel)]="newTransaction.date" name="date" required />
+        <select [(ngModel)]="newTransaction.accountId" name="accountId" required>
             <option *ngFor="let a of accounts$ | async" [ngValue]="a.id">{{ a.name }}</option>
         </select>
-    </label>
-
-    <label>Category:
-        <select [(ngModel)]="selectedCategoryId" (change)="reload()">
-            <option [ngValue]="null">All</option>
+        <select [(ngModel)]="newTransaction.categoryId" name="categoryId" required>
             <option *ngFor="let c of categories$ | async" [ngValue]="c.id">{{ c.name }}</option>
         </select>
-    </label>
-</div>
-
-<!-- Table -->
-<div *ngIf="paged$ | async as pageData; else loading">
-    <div class="table-wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th (click)="sort('date')">Date</th>
-                    <th (click)="sort('accountName')">Account</th>
-                    <th (click)="sort('categoryName')">Category</th>
-                    <th (click)="sort('direction')">Direction</th>
-                    <th (click)="sort('amount')">Amount</th>
-                    <th></th>
-                </tr>
-            </thead>
-
-            <tbody>
-                <tr *ngFor="let t of pageData.items; trackBy: trackById">
-                    <!-- Date -->
-                    <td *ngIf="editingId !== t.id">{{ t.date | date:'yyyy-MM-dd' }}</td>
-                    <td *ngIf="editingId === t.id">
-                        <input type="date" [(ngModel)]="editTxn!.date">
-                    </td>
-
-                    <!-- Account -->
-                    <td *ngIf="editingId !== t.id">{{ t.accountName }}</td>
-                    <td *ngIf="editingId === t.id">
-                        <select [(ngModel)]="editTxn!.accountId">
-                            <option *ngFor="let a of (accounts$ | async) || []" [ngValue]="a.id">{{ a.name }}</option>
-                        </select>
-                    </td>
-
-                    <!-- Category -->
-                    <td *ngIf="editingId !== t.id">{{ t.categoryName }}</td>
-                    <td *ngIf="editingId === t.id">
-                        <select [(ngModel)]="editTxn!.categoryId">
-                            <option *ngFor="let c of (categories$ | async) || []" [ngValue]="c.id">{{ c.name }}</option>
-                        </select>
-                    </td>
-
-                    <!-- Direction -->
-                    <td class="direction-{{ t.direction | lowercase }}" *ngIf="editingId !== t.id">{{ t.direction }}
-                    </td>
-                    <td *ngIf="editingId === t.id">
-                        <select [(ngModel)]="editTxn!.direction">
-                            <option [ngValue]="1">Income</option>
-                            <option [ngValue]="2">Expense</option>
-                        </select>
-                    </td>
-
-                    <!-- Amount -->
-                    <td class="amount" *ngIf="editingId !== t.id">{{ t.amount | number:'1.2-2' }}</td>
-                    <td class="amount" *ngIf="editingId === t.id">
-                        <input type="number" min="0.01" step="0.01" [(ngModel)]="editTxn!.amount">
-                    </td>
-
-                    <!-- Actions -->
-                    <td>
-                        <button class="icon-btn" *ngIf="editingId !== t.id" (click)="startEdit(t)">✎</button>
-                        <button class="icon-btn" style="margin-left: .5rem;" *ngIf="editingId !== t.id" (click)="txDelete(t.id)">✕</button>
-                        <button class="add-btn" *ngIf="editingId === t.id" (click)="saveEdit(t.id)">Save</button>
-                        <button class="icon-btn" style="margin-left: .5rem;" *ngIf="editingId === t.id" (click)="cancelEdit()">✕</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Pager -->
-    <div class="pager">
-        <button (click)="goTo(page - 1)" [disabled]="page === 1">&laquo;</button>
-        <span>Page {{ page }} / {{ Math.ceil(pageData.totalCount / pageSize) }}</span>
-        <button (click)="goTo(page + 1)" [disabled]="page * pageSize >= pageData.totalCount">&raquo;</button>
-
-        <select [(ngModel)]="pageSize" (change)="changePageSize(pageSize)">
-            <option [ngValue]="10">10</option>
-            <option [ngValue]="20">20</option>
-            <option [ngValue]="50">50</option>
+        <select [(ngModel)]="newTransaction.direction" name="direction" required>
+            <option [ngValue]="1">Income</option>
+            <option [ngValue]="2">Expense</option>
         </select>
-    </div>
+        <input type="number" [(ngModel)]="newTransaction.amount" name="amount" min="0.01" step="0.01" required
+            class="amount-input" />
+        <button type="submit" class="add-btn">Add</button>
+    </form>
+
+    <ng-template #loading>
+        <p>Loading…</p>
+    </ng-template>
 </div>
-
-<!-- Add-transaction form -->
-<form class="tx-form" (ngSubmit)="txSave()">
-    <input type="date" [(ngModel)]="newTransaction.date" name="date" required />
-    <select [(ngModel)]="newTransaction.accountId" name="accountId" required>
-        <option *ngFor="let a of accounts$ | async" [ngValue]="a.id">{{ a.name }}</option>
-    </select>
-    <select [(ngModel)]="newTransaction.categoryId" name="categoryId" required>
-        <option *ngFor="let c of categories$ | async" [ngValue]="c.id">{{ c.name }}</option>
-    </select>
-    <select [(ngModel)]="newTransaction.direction" name="direction" required>
-        <option [ngValue]="1">Income</option>
-        <option [ngValue]="2">Expense</option>
-    </select>
-    <input type="number" [(ngModel)]="newTransaction.amount" name="amount" min="0.01" step="0.01" required
-        class="amount-input" />
-    <button type="submit" class="add-btn">Add</button>
-</form>
-
-<ng-template #loading>
-    <p>Loading…</p>
-</ng-template>

@@ -37,95 +37,156 @@ body {
 
 /* Table wrapper */
 .table-wrap {
-  max-height: 520px;
-  overflow: auto;
+  max-height: 440px;
+  flex: 1 1 auto;
+  overflow-y: auto;
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e0e0e0;
 }
 
-/* Table layout */
+/* overall table styling */
 table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  background: #fff;
-  border-radius: 8px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  font-family: "Segoe UI", system-ui, sans-serif;
 }
 
-/* Header row */
+/* header row */
 thead {
-  background-color: #f9f9f9;
+  background-color: #e3f2fd;
+  /* light pastel blue */
 }
 
 thead th {
   padding: 0.75rem;
   text-align: left;
   font-weight: 600;
-  border-bottom: 1px solid #ddd;
-  color: #333;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+  color: #0277bd;
+  /* deeper blue */
+  border-bottom: none;
+  border-right: 1px solid #bbdefb;
 }
 
-thead th:hover {
-  background-color: #f1f1f1;
+thead th:last-child {
+  border-right: none;
 }
 
-/* Body rows */
+/* body rows */
 tbody tr {
   transition: background-color 0.2s ease;
 }
 
+tbody tr:nth-child(odd) {
+  background-color: #f0f4fa;
+  /* very light blue */
+}
+
 tbody tr:nth-child(even) {
-  background-color: #fcfcfc;
+  background-color: #f9fbfd;
+  /* off-white */
 }
 
 tbody tr:hover {
-  background-color: #f5f9ff;
+  background-color: #dff0fe;
+  /* gentle highlight */
 }
 
-/* Body cells */
+/* body cells */
 tbody td {
-  padding: 0.65rem;
-  border-bottom: 1px solid #eee;
-  color: #444;
-}
-
-/* Last row - remove border */
-tbody tr:last-child td {
+  padding: 0.75rem;
+  color: #374151;
+  /* soft gray-black */
   border-bottom: none;
+  border-right: 1px solid #e0e7ff;
 }
 
-/* Rounded corners */
+tbody td:last-child {
+  border-right: none;
+}
+
+/* rounded corners on the outer cells */
 thead th:first-child {
-  border-top-left-radius: 8px;
+  border-top-left-radius: 12px;
 }
 
 thead th:last-child {
-  border-top-right-radius: 8px;
+  border-top-right-radius: 12px;
 }
 
 tbody tr:last-child td:first-child {
-  border-bottom-left-radius: 8px;
+  border-bottom-left-radius: 12px;
 }
 
 tbody tr:last-child td:last-child {
-  border-bottom-right-radius: 8px;
+  border-bottom-right-radius: 12px;
+}
+
+/* optional: make the sort-hover feel lighter */
+thead th:hover {
+  background-color: #c5e1fb;
+  cursor: pointer;
+}
+
+/* ─── DATE BADGE ────────────────────────────────────────────────────────── */
+td.col-date .date-badge {
+  display: inline-block;
+  background: #e1f5fe;
+  /* very light blue */
+  color: #0277bd;
+  /* dark blue */
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  min-width: 48px;
+  text-align: center;
+}
+
+/* ─── ACCOUNT CELL ─────────────────────────────────────────────────────── */
+td.col-account {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+td.col-account .account-icon {
+  font-size: 1rem;
+}
+
+td.col-account .account-label {
+  font-weight: 500;
+  color: #374151;
+}
+
+/* ─── CATEGORY PILL ───────────────────────────────────────────────────── */
+td.col-category .category-pill {
+  display: inline-block;
+  background: #fff3e0;
+  /* light orange */
+  color: #ef6c00;
+  /* darker orange */
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.90rem;
+  font-weight: 500;
+}
+
+/* responsive padding shrink on small screens */
+@media (max-width: 600px) {
+
+  thead th,
+  tbody td {
+    padding: 0.5rem;
+  }
 }
 
 /* Highlight numeric columns */
 .amount {
-  font-weight: bold;
   color: #222;
-  /* text-align: right; */
-  font-variant-numeric: tabular-nums;
-}
-
-
-/* right‑align numeric column (add class="amount" in template) */
-.amount {
-  /* text-align: right; */
   font-variant-numeric: tabular-nums;
   font-weight: bolder;
 }
@@ -139,22 +200,110 @@ tbody tr:last-child td:last-child {
   color: #c22;
 }
 
+.actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  /* consistent spacing */
+}
+
+/* generic icon button (circular) */
 .icon-btn {
-  background: transparent;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eff6ff;
+  /* soft pastel blue */
+  color: #0284c7;
+  /* deeper blue */
   border: none;
-  color: #c22;
+  border-radius: 50%;
   font-size: 1.1rem;
-  cursor: pointer;
   line-height: 1;
-  padding: 0 .25rem;
+  transition: background 0.2s, color 0.2s, transform 0.1s;
+  cursor: pointer;
 }
 
 .icon-btn:hover {
-  color: #a00;
+  background: #d0ebff;
+  color: #0369a1;
+  transform: scale(1.05);
 }
 
 .icon-btn:focus {
-  outline: 2px solid #a00;
+  outline: 2px solid #0369a1;
+  outline-offset: 2px;
+}
+
+/* delete button variation */
+.icon-btn.delete {
+  background: #ffe3e3;
+  /* light red */
+  color: #c22;
+}
+
+.icon-btn.delete:hover {
+  background: #ffbdbd;
+  color: #a00;
+}
+
+/* cancel-in-edit variation */
+.icon-btn.cancel {
+  background: #fff4e6;
+  /* light orange */
+  color: #f97316;
+}
+
+.icon-btn.cancel:hover {
+  background: #ffd8a8;
+  color: #c2410c;
+}
+
+/* EDIT BUTTON VARIANT */
+.icon-btn.edit {
+  /* override the default to a slightly deeper pastel */
+  background: #e3f2fd;
+  /* very light blue */
+  color: #0284c7;
+  /* strong blue */
+}
+
+.icon-btn.edit:hover {
+  background: #b3e5fc;
+  /* a bit more saturated */
+  color: #0369a1;
+  /* darker on hover */
+}
+
+.icon-btn.edit:focus {
+  outline: 2px solid #0369a1;
+  outline-offset: 2px;
+}
+
+/* save button (solid pill) */
+.save-btn {
+  padding: 0.4rem 0.8rem;
+  background: #22c55e;
+  /* green */
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background 0.2s, transform 0.1s;
+  cursor: pointer;
+}
+
+.save-btn:hover {
+  background: #16a34a;
+  transform: translateY(-1px);
+}
+
+.save-btn:focus {
+  outline: 2px solid #16a34a;
   outline-offset: 2px;
 }
 
@@ -198,7 +347,7 @@ tbody tr:last-child td:last-child {
 /* reuse green */
 
 
-.filters {
+/* .filters {
   display: flex;
   gap: 1rem;
   align-items: center;
@@ -213,7 +362,7 @@ tbody tr:last-child td:last-child {
 .filters select {
   margin-left: 0.35rem;
   padding: 0.25rem 0.4rem;
-}
+} */
 
 .add-form {
   display: flex;
@@ -246,7 +395,7 @@ tbody tr:last-child td:last-child {
   flex: 0 0 auto;
 }
 
-.tx-form {
+/* .tx-form {
   display: flex;
   gap: .5rem;
   align-items: center;
@@ -279,7 +428,7 @@ tbody tr:last-child td:last-child {
 
 .tx-form .add-btn {
   flex: 0 0 auto;
-}
+} */
 
 .login-form,
 .login-info {
@@ -297,7 +446,7 @@ tbody tr:last-child td:last-child {
   border-radius: 4px;
 }
 
-.pager {
+/* .pager {
   margin-top: .5rem;
   display: flex;
   gap: .5rem;
@@ -315,8 +464,282 @@ tbody tr:last-child td:last-child {
 .pager button[disabled] {
   opacity: .4;
   cursor: default;
-}
+} */
 
 .card {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
+  box-shadow: 0 0px 12px rgba(0, 0, 0, .1);
+  width: 100%;
+  border-radius: 8px;
+  border: 0px;
+  background-color: #f8f8f8;
+}
+
+/* make the card a positioning context */
+.acc-card {
+  margin-top: 1rem;
+  position: relative;
+  background: #f3f9fe;
+  border-radius: 8px;
+  padding: 1.5rem 1rem 1rem;  /* extra top padding for sticker */
+  box-shadow: 0 0px 12px rgba(0,0,0,0.2);
+}
+
+/* create the “sticker” badge using ::before */
+.acc-card::before {
+  content: 'Account';
+  position: absolute;
+  top: 0; left: 1rem;
+  transform: translateY(-50%);
+  background: #1976D2;       /* blue tone */
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  white-space: nowrap;
+}
+
+/* ─── FILTER BAR ─────────────────────────────────────────────────────────── */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: .75rem 1rem;
+  background: #e3f2fd;
+  /* pastel blue */
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.filters label {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .9rem;
+  color: #1e3a8a;
+  /* dark blue text */
+}
+
+.filters input,
+.filters select {
+  padding: .4rem .6rem;
+  border: 1px solid #bbdefb;
+  /* light blue border */
+  border-radius: 6px;
+  background: #fff;
+  color: #333;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.filters input:focus,
+.filters select:focus {
+  outline: none;
+  border-color: #90caf9;
+  box-shadow: 0 0 0 3px rgba(144, 202, 249, 0.3);
+}
+
+.filters-summary {
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.filters-summary button {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #0277bd;
+  /* deep blue text */
+  background: #ffffff;
+  border: 1px solid #90caf9;
+  /* pastel blue border */
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: background .2s, box-shadow .2s;
+  cursor: pointer;
+}
+
+.filters-summary button:hover {
+  background: #e3f2fd;
+  /* very light blue bg */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.filters-summary span {
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.filters-reset,
+.filters-export {
+  margin-left: .5rem;
+  padding: .4rem .8rem;
+  border: none;
+  border-radius: 6px;
+  background: #ffcc80;
+  /* pastel orange */
+  color: #6b4f0b;
+  cursor: pointer;
+  font-size: .85rem;
+}
+
+.filters-export {
+  background: #a5d6a7;
+  color: #2e7d32;
+}
+
+/* ─── ADD-TRANSACTION FORM ──────────────────────────────────────────────── */
+.tx-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  align-items: center;
+  margin-top: 1rem;
+  padding: .75rem 1rem;
+  background: #e8f5e9;
+  /* pastel green */
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.tx-form input,
+.tx-form select {
+  padding: .5rem .75rem;
+  font-size: .9rem;
+  border: 1px solid #c5e1a5;
+  /* light green border */
+  border-radius: 6px;
+  background: #fff;
+  color: #333;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.tx-form input:focus,
+.tx-form select:focus {
+  outline: none;
+  border-color: #aed581;
+  box-shadow: 0 0 0 3px rgba(174, 213, 129, 0.3);
+}
+
+.tx-form input[type="date"] {
+  flex: 0 0 150px;
+}
+
+.tx-form select {
+  flex: 0 0 140px;
+  min-width: 120px;
+}
+
+.tx-form .amount-input {
+  flex: 0 0 110px;
+  text-align: right;
+}
+
+/* add button */
+.tx-form .add-btn {
+  flex: 0 0 auto;
+  padding: .5rem 1rem;
+  font-size: .9rem;
+  border: none;
+  border-radius: 6px;
+  background: #43a047;
+  /* medium green */
+  color: #fff;
+  cursor: pointer;
+  transition: background .2s;
+}
+
+.tx-form .add-btn:hover {
+  background: #388e3c;
+}
+
+/* ─── PAGER ─────────────────────────────────────────────────────────────── */
+.pager {
+  /* max-width: 600px; */
+  margin: 0 auto 1rem;
+  padding: .5rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1rem;
+  background: #fff3e0;
+  /* pastel orange */
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.pager button {
+  padding: .5rem .75rem;
+  border: 1px solid #ffcc80;
+  /* light orange border */
+  border-radius: 6px;
+  background: #fff;
+  color: #6b4f0b;
+  /* dark orange text */
+  cursor: pointer;
+  transition: background .2s, border-color .2s;
+}
+
+.pager button:hover:not([disabled]) {
+  background: #ffe0b2;
+}
+
+.pager button[disabled] {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.pager select {
+  padding: .5rem .75rem;
+  border: 1px solid #ffcc80;
+  border-radius: 6px;
+  background: #fff;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.pager select:focus {
+  outline: none;
+  border-color: #ffb74d;
+  box-shadow: 0 0 0 3px rgba(255, 183, 77, 0.3);
+}
+
+.pager-info {
+  margin-left: auto;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+/* ─── RESPONSIVE ADJUSTMENTS ───────────────────────────────────────────── */
+@media (max-width: 600px) {
+
+  .filters,
+  .tx-form,
+  .pager {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.icon-btn2 {
+  background: transparent;
+  border: none;
+  color: #c22;
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 .25rem;
+}
+
+.icon-btn2:hover {
+  color: #a00;
+}
+
+.icon-btn2:focus {
+  outline: 2px solid #a00;
+  outline-offset: 2px;
 }

@@ -2,3 +2,75 @@
   max-width: 400px;
   margin: 0 auto;
 }
+
+
+/* make the card a positioning context */
+.sticker-card {
+  position: relative;
+  background: #f3f9fe;
+  border-radius: 8px;
+  padding: 1.5rem 1rem 1rem;  /* extra top padding for sticker */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* create the “sticker” badge using ::before */
+.sticker-card::before {
+  content: 'Expenses by Category';
+  position: absolute;
+  top: 0; left: 1rem;
+  transform: translateY(-50%);
+  background: #1976D2;       /* blue tone */
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  white-space: nowrap;
+}
+
+/* move the existing chart-header down a bit */
+.chart-header {
+  margin-top: 0.25rem;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+
+/* title tweaks */
+.chart-header h3 {
+  font-size: 1.1rem;
+  /* smaller */
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
+  padding-top: .5rem;
+}
+
+/* month picker styling */
+.chart-month {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  color: #555;
+  margin-left: 2rem;
+}
+
+.chart-month input {
+  margin-left: 0.35rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9rem;
+  width: 6.5rem;
+  /* shrink width */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  transition: border-color .2s;
+}
+
+.chart-month input:focus {
+  outline: none;
+  border-color: #90caf9;
+}
