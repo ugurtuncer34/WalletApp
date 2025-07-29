@@ -34,6 +34,9 @@ export class AuthService {
     if (token) localStorage.setItem(this.tokenKey, token);
     else localStorage.removeItem(this.tokenKey);
     this.tokenSubject.next(token);
+
+    const email = this.decodeEmail(token);
+    this.emailSubject.next(email);
   }
 
   private load(): string | null {

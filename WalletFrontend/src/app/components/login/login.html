@@ -1,0 +1,32 @@
+<!-- wrapper purely for centering -->
+<div class="login-page">
+  <form [formGroup]="loginForm" (ngSubmit)="doLogin()" class="login-form">
+    <div class="form-field">
+      <input
+        type="email"
+        formControlName="email"
+        placeholder="Email"
+        [class.invalid]="loginForm.controls.email.touched && loginForm.controls.email.invalid" />
+      <div class="error-msg" *ngIf="loginForm.controls.email.touched && loginForm.controls.email.errors">
+        <small *ngIf="loginForm.controls.email.errors?.['required']">Email is required.</small>
+        <small *ngIf="loginForm.controls.email.errors?.['email']">Must be a valid email.</small>
+      </div>
+    </div>
+
+    <div class="form-field">
+      <input
+        type="password"
+        formControlName="password"
+        placeholder="Password"
+        [class.invalid]="loginForm.controls.password.touched && loginForm.controls.password.invalid" />
+      <div class="error-msg" *ngIf="loginForm.controls.password.touched && loginForm.controls.password.errors">
+        <small *ngIf="loginForm.controls.password.errors?.['required']">Password is required.</small>
+        <small *ngIf="loginForm.controls.password.errors?.['minlength']">
+          Must be at least {{ loginForm.controls.password.errors['minlength'].requiredLength }} characters.
+        </small>
+      </div>
+    </div>
+
+    <button class="login-btn" type="submit" [disabled]="isLoggingIn">Login</button>
+  </form>
+</div>
