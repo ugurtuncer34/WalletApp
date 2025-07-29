@@ -17,6 +17,7 @@ using Serilog;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.RateLimiting;
 using WalletBackend.Endpoints;
+using Microsoft.AspNetCore.Mvc;
 
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(new ConfigurationBuilder()
@@ -115,6 +116,25 @@ try
 
     var app = builder.Build();
 
+    app.UseExceptionHandler(a =>
+    {
+        a.Run(async ctx =>
+        {
+            var ex = ctx.Features.Get<IExceptionHandlerPathFeature>()?.Error;
+            Log.Error(ex, "Unhandled exception");
+            ctx.Response.StatusCode = 500;
+            ctx.Response.ContentType = "application/problem+json";
+            var problem = new ProblemDetails
+            {
+                Type = "https://httpstatuses.com/500",
+                Title = "Internal Server Error",
+                Status = 500,
+                Detail = builder.Environment.IsDevelopment() ? ex?.Message : "An unexpected error occured."
+            };
+            await ctx.Response.WriteAsJsonAsync(problem);
+        });
+    });
+
     if (!app.Environment.IsEnvironment("Testing"))
     {
         app.SeedData();
@@ -133,17 +153,7 @@ try
        .UseCors("dev")
        .UseRateLimiter()
        .UseAuthentication()
-       .UseAuthorization()
-       .UseExceptionHandler(a =>
-    {
-        a.Run(async ctx =>
-        {
-            var ex = ctx.Features.Get<IExceptionHandlerPathFeature>()?.Error;
-            Log.Error(ex, "Unhandled exception");
-            ctx.Response.StatusCode = 500;
-            await ctx.Response.WriteAsync("Unexpected error");
-        });
-    });
+       .UseAuthorization();
 
     app.MapAuthEndpoints();
     app.MapTransactionEndpoints();

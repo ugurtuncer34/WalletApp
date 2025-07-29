@@ -129,6 +129,8 @@ public static class TransactionEndpoints
             return Results.Ok();
         });
 
+        // tx.MapGet("/boom", () => { throw new InvalidOperationException("Kaboom"); }); // error handler tryout
+
         return tx;
     }
 }
