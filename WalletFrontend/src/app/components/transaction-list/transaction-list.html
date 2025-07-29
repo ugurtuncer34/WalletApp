@@ -133,21 +133,45 @@
     </div>
 
     <!-- Add-transaction form -->
-    <form class="tx-form" (ngSubmit)="txSave()">
-        <input type="date" [(ngModel)]="newTransaction.date" name="date" required />
-        <select [(ngModel)]="newTransaction.accountId" name="accountId" required>
-            <option *ngFor="let a of accounts$ | async" [ngValue]="a.id">{{ a.name }}</option>
-        </select>
-        <select [(ngModel)]="newTransaction.categoryId" name="categoryId" required>
-            <option *ngFor="let c of categories$ | async" [ngValue]="c.id">{{ c.name }}</option>
-        </select>
-        <select [(ngModel)]="newTransaction.direction" name="direction" required>
-            <option [ngValue]="1">Income</option>
-            <option [ngValue]="2">Expense</option>
-        </select>
-        <input type="number" [(ngModel)]="newTransaction.amount" name="amount" min="0.01" step="0.01" required
-            class="amount-input" />
-        <button type="submit" class="add-btn">Add</button>
+    <form [formGroup]="txnForm" class="tx-form" (ngSubmit)="txSave()">
+        <div class="form-field date-field">
+            <input type="date" formControlName="date" />
+            <div class="error-msg" *ngIf="txnForm.controls.date.touched && txnForm.controls.date.invalid">
+                <small>Date is required.</small>
+            </div>
+        </div>
+        <div class="form-field account-field">
+            <select formControlName="accountId" required>
+                <option *ngFor="let a of accounts$ | async" [ngValue]="a.id">{{ a.name }}</option>
+            </select>
+        </div>
+        <div class="form-field category-field">
+            <select formControlName="categoryId" required>
+                <option *ngFor="let c of categories$ | async" [ngValue]="c.id">{{ c.name }}</option>
+            </select>
+        </div>
+        <div class="form-field direction-field">
+            <select formControlName="direction" required>
+                <option [ngValue]="1">Income</option>
+                <option [ngValue]="2">Expense</option>
+            </select>
+        </div>
+        <div class="form-field amount-field">
+            <input type="number" formControlName="amount" min="0.01" step="0.01" class="amount-input"
+                placeholder="Amount" />
+            <!-- error messages -->
+            <div class="error-msg" *ngIf="txnForm.controls.amount.touched && txnForm.controls.amount.invalid">
+                <small *ngIf="txnForm.controls.amount.errors?.['required']">
+                    Amount is required.
+                </small>
+                <small *ngIf="txnForm.controls.amount.errors?.['min']">
+                    Amount must be at least 0.01.
+                </small>
+            </div>
+        </div>
+        <div class="form-field submit">
+            <button type="submit" class="add-btn" [disabled]="txnForm.invalid">Add</button>
+        </div>
     </form>
 
     <ng-template #loading>

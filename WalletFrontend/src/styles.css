@@ -430,6 +430,37 @@ td.col-category .category-pill {
   flex: 0 0 auto;
 } */
 
+/* home-component.css */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 320px;
+  margin: 2rem auto;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field input {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  transition: border-color .2s;
+}
+
+.form-field input.invalid {
+  border-color: #c62828;
+}
+
+.error-msg small {
+  color: #c62828;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
 .login-form,
 .login-info {
   /* margin-bottom: 1rem; */
@@ -480,23 +511,26 @@ td.col-category .category-pill {
   position: relative;
   background: #f3f9fe;
   border-radius: 8px;
-  padding: 1.5rem 1rem 1rem;  /* extra top padding for sticker */
-  box-shadow: 0 0px 12px rgba(0,0,0,0.2);
+  padding: 1.5rem 1rem 1rem;
+  /* extra top padding for sticker */
+  box-shadow: 0 0px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* create the “sticker” badge using ::before */
 .acc-card::before {
   content: 'Account';
   position: absolute;
-  top: 0; left: 1rem;
+  top: 0;
+  left: 1rem;
   transform: translateY(-50%);
-  background: #1976D2;       /* blue tone */
+  background: #1976D2;
+  /* blue tone */
   color: #fff;
   font-size: 0.85rem;
   font-weight: 600;
   padding: 0.25rem 0.75rem;
   border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   white-space: nowrap;
 }
 
@@ -596,7 +630,7 @@ td.col-category .category-pill {
   display: flex;
   flex-wrap: wrap;
   gap: .75rem;
-  align-items: center;
+  align-items: flex-start;
   margin-top: 1rem;
   padding: .75rem 1rem;
   background: #e8f5e9;
@@ -624,22 +658,9 @@ td.col-category .category-pill {
   box-shadow: 0 0 0 3px rgba(174, 213, 129, 0.3);
 }
 
-.tx-form input[type="date"] {
-  flex: 0 0 150px;
-}
-
-.tx-form select {
-  flex: 0 0 140px;
-  min-width: 120px;
-}
-
-.tx-form .amount-input {
-  flex: 0 0 110px;
-  text-align: right;
-}
-
 /* add button */
 .tx-form .add-btn {
+  align-self: flex-end;
   flex: 0 0 auto;
   padding: .5rem 1rem;
   font-size: .9rem;
@@ -654,6 +675,39 @@ td.col-category .category-pill {
 
 .tx-form .add-btn:hover {
   background: #388e3c;
+}
+
+/* style for inline validation messages */
+.error-msg {
+  color: #c62828;
+  /* red */
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  text-align: center;
+}
+
+.tx-form .form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.tx-form .account-field,
+.tx-form .category-field,
+.tx-form .direction-field,
+.tx-form .amount-field {
+  /* grow | shrink | basis-min */
+  flex: 1 1 140px;
+  /* 1 = grow, 1 = shrink, 140px = min width */
+}
+
+.tx-form .amount-field input {
+  text-align: right;
+}
+
+.tx-form .form-field input,
+.tx-form .form-field select {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* ─── PAGER ─────────────────────────────────────────────────────────────── */

@@ -1,7 +1,6 @@
 import { Component, inject } from '@angular/core';
-import { TransactionService } from '../../services/transaction-service';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AccountService } from '../../services/account-service';
 import { CategoryService } from '../../services/category-service';
 import { AccountReadDto } from '../../models/account-read-dto';
@@ -17,7 +16,7 @@ import { CategoryExpenseChart } from '../category-expense-chart/category-expense
 
 @Component({
   selector: 'app-home-component',
-  imports: [CommonModule, FormsModule, AccountList, CategoryList, TransactionList, CategoryExpenseChart],
+  imports: [CommonModule, ReactiveFormsModule, AccountList, CategoryList, TransactionList, CategoryExpenseChart],
   templateUrl: './home-component.html',
   styleUrl: './home-component.css'
 })
@@ -26,14 +25,30 @@ export class HomeComponent {
   readonly Math = Math;
 
   ////// AUTH //////
-  loginDto: LoginDto = { email: '', password: '' };
   isLoggingIn = false;
   auth = inject(AuthService);
 
+  loginForm = new FormGroup({
+    email: new FormControl<string>('', [Validators.required, Validators.email]),
+    password: new FormControl<string>('', [Validators.required, Validators.minLength(6)])
+  });
+
   doLogin() {
+    // mark controls touched so errors show
+    this.loginForm.markAllAsTouched();
+
+    if (this.loginForm.invalid) {
+      return;
+    }
+
     this.isLoggingIn = true;
-    this.auth.login(this.loginDto).subscribe({
-      next: () => { this.isLoggingIn = false; this.reload(); }, // reload data now authorized
+    const dto = this.loginForm.value as LoginDto;
+    this.auth.login(dto).subscribe({
+      next: () => {
+        this.isLoggingIn = false;
+        this.loginForm.controls.password.reset();
+        this.reload();
+      },
       error: () => { this.isLoggingIn = false; }
     });
   }
@@ -72,6 +87,6 @@ export class HomeComponent {
 
   onCategoryUpdated() {
     this.closeCategories();
-    this.reload(); 
+    this.reload();
   }
 }

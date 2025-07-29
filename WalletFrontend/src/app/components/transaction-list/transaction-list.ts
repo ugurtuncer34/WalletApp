@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, EventEmitter, inject, Input, Output } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Observable, take, tap } from 'rxjs';
 
 import { AccountReadDto } from '../../models/account-read-dto';
@@ -16,7 +16,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 @Component({
   selector: 'app-transaction-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './transaction-list.html',
   styleUrls: ['./transaction-list.css']
 })
@@ -51,24 +51,31 @@ export class TransactionList {
   paged$ = this.loadPage();
 
   // add-transaction form 
-  newTransaction: TransactionCreateDto = {
-    date: new Date().toISOString().slice(0, 10),
-    amount: 0,
-    direction: 2,
-    accountId: 0,
-    categoryId: 0
-  };
+  // newTransaction: TransactionCreateDto = {
+  //   date: new Date().toISOString().slice(0, 10),
+  //   amount: 0,
+  //   direction: 2,
+  //   accountId: 0,
+  //   categoryId: 0
+  // };
+  // replaced for reactive forms
+  txnForm = new FormGroup({
+    date: new FormControl<string>(new Date().toISOString().slice(0, 10), Validators.required),
+    accountId: new FormControl<number | null>(null, Validators.required),
+    categoryId: new FormControl<number | null>(null, Validators.required),
+    direction: new FormControl<number>(2, Validators.required),
+    amount: new FormControl<number>(0, [Validators.required, Validators.min(0.01)])
+  });
 
   // edit state...
   editingId: number | null = null;
   editTxn?: TransactionUpdateDto | null = null;
 
   ngOnInit() {
-    // reset form defaults once
     this.accounts$?.pipe(take(1), takeUntilDestroyed(this.destroyRef))
-      .subscribe(a => { if (a.length) this.newTransaction.accountId = a[0].id; });
+      .subscribe(a => { if (a.length) this.txnForm.controls.accountId.setValue(a[0].id); });
     this.categories$?.pipe(take(1), takeUntilDestroyed(this.destroyRef))
-      .subscribe(c => { if (c.length) this.newTransaction.categoryId = c[0].id; });
+      .subscribe(c => { if (c.length) this.txnForm.controls.categoryId.setValue(c[0].id); });
 
     // reload when signalled
     this.reloadSvc.sig$
@@ -130,14 +137,35 @@ export class TransactionList {
     this.reload();
   }
 
-  /* ------------- CRUD handlers --------------- */
+  // txSave() {
+  //   this.txService.create(this.newTransaction).subscribe(() => {
+  //     this.newTransaction.amount = 0;
+  //     this.newTransaction.date = new Date().toISOString().slice(0, 10);
+  //     this.page = 1;
+  //     this.reload();
+  //     this.updated.emit();
+  //   });
+  // }
+  // replaced for reactive forms
   txSave() {
-    this.txService.create(this.newTransaction).subscribe(() => {
-      this.newTransaction.amount = 0;
-      this.newTransaction.date = new Date().toISOString().slice(0, 10);
-      this.page = 1;
-      this.reload();
-      this.updated.emit();
+    this.txnForm.markAllAsTouched();
+    
+    if (this.txnForm.invalid) return;
+
+    const v = this.txnForm.value;
+    const dto: TransactionCreateDto = {
+      date: new Date(v.date!).toISOString().slice(0, 10),
+      accountId: v.accountId!,
+      categoryId: v.categoryId!,
+      direction: v.direction!,
+      amount: v.amount!
+    };
+
+    this.txService.create(dto).subscribe(() => {
+      // reset only the amount & date
+      this.txnForm.controls.amount.setValue(0);
+      this.txnForm.controls.date.setValue(new Date().toISOString().slice(0,10));
+      this.page = 1; this.reload(); this.updated.emit();
     });
   }
 
