@@ -105,6 +105,7 @@ public static class TransactionEndpoints
                                 .FirstAsync(t => t.Id == entity.Id);
             return Results.Created($"/transactions/{entity.Id}", mapper.Map<TransactionReadDto>(entity));
         })
+        .AddEndpointFilter<DtoValidationFilter<TransactionCreateDto>>()
         .AddEndpointFilter<PositiveAmountFilter>();
 
         tx.MapPut("/{id:int}", async (WalletDbContext db, IMapper mapper, TransactionUpdateDto dto, int id) =>
@@ -116,6 +117,7 @@ public static class TransactionEndpoints
             await db.SaveChangesAsync();
             return Results.NoContent();
         })
+        .AddEndpointFilter<DtoValidationFilter<TransactionUpdateDto>>()
         .AddEndpointFilter<PositiveAmountFilter>();
 
         tx.MapDelete("/{id:int}", async (WalletDbContext db, int id) =>
